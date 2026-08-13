@@ -4,9 +4,15 @@ import logging
 from aiogram import Router, F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, CallbackQuery, FSInputFile
+from aiogram.enums import ChatType
 
 from config import config
-from database.requests import get_or_create_user, set_language, get_user
+from database.requests import (
+    get_or_create_user,
+    set_language,
+    get_user,
+    get_user_by_group_chat_id,
+)
 from locales.texts import t
 from utils.keyboards import language_keyboard, pay_keyboard
 from utils.credentials import decrypt_password
@@ -51,6 +57,25 @@ async def send_tutorial_video(message: Message, language: str) -> None:
         await message.answer_video(video, caption=t(language, "tutorial_caption"))
     except Exception:
         logger.exception("Video yuborishda xatolik")
+
+
+@router.message(CommandStart(), F.chat.type.in_({ChatType.GROUP, ChatType.SUPERGROUP}))
+async def cmd_start_in_group(message: Message):
+    """Guruhda /start bosilganda login/parol EMAS, faqat bog'lanish holati ko'rsatiladi."""
+    linked_user = await get_user_by_group_chat_id(message.chat.id)
+
+    if linked_user:
+        await message.answer(
+            "✅ Bu guruh allaqachon bog'langan.\n"
+            "Saytdagi o'zgarishlar (mahsulot, rasxod va h.k.) shu guruhga avtomatik yuborib turiladi."
+        )
+    else:
+        await message.answer(
+            "🔗 Bu guruhni saytdagi hisobingizga bog'lash uchun, guruh admini "
+            "login va parolni quyidagi formatda yubosin:\n\n"
+            "<code>login parol</code>\n\n"
+            "Masalan: <code>user482913 aB3xY9Zk1Qw2</code>"
+        )
 
 
 @router.message(CommandStart())
