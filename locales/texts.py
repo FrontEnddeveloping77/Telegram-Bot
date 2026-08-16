@@ -9,10 +9,43 @@ TEXTS = {
             "Pastdagi tugmani bosing 👇"
         ),
         "btn_pay": "💳 To'lov qilish",
-        "choose_payment_method": "To'lov usulini tanlang:",
-        "btn_click": "Click",
-        "btn_payme": "Payme",
-        "btn_other": "Boshqa usul",
+        "card_payment_instructions": (
+            "💳 To'lovni quyidagi karta orqali amalga oshiring:\n\n"
+            "Karta raqami: <code>{card_number}</code>\n"
+            "Karta egasi: <b>{card_holder}</b>\n"
+            "Summa: <b>{price} so'm</b>\n\n"
+            "1️⃣ Karta raqamini bosib nusxa oling (copy)\n"
+            "2️⃣ Bankomat yoki istalgan mobil ilova orqali to'lovni amalga oshiring\n"
+            "3️⃣ To'lov chekini (screenshot yoki rasm) shu yerga yuboring 👇"
+        ),
+        "receipt_invalid": "❗ Iltimos, to'lov chekini rasm (screenshot) shaklida yuboring.",
+        "receipt_received": (
+            "✅ Chekingiz qabul qilindi va admin tekshiruviga yuborildi.\n"
+            "Tasdiqlangach sizga bu yerda xabar beramiz, biroz kuting."
+        ),
+        "payment_rejected_user": (
+            "❌ Afsuski, to'lovingiz tasdiqlanmadi.\n\n"
+            "Sabab: {reason}\n\n"
+            "Iltimos, to'lovni qaytadan tekshirib, chekni qayta yuboring "
+            "yoki savol bo'lsa admin bilan bog'laning."
+        ),
+        "admin_new_payment_request": (
+            "🆕 Yangi to'lov cheki!\n\n"
+            "👤 Foydalanuvchi: {full_name} (@{username})\n"
+            "🆔 Telegram ID: <code>{telegram_id}</code>\n"
+            "💰 Kutilayotgan summa: {price} so'm\n\n"
+            "Chekni tekshirib, quyidagi tugmalardan birini tanlang 👇"
+        ),
+        "admin_already_handled": "⚠️ Bu to'lov so'rovi allaqachon ko'rib chiqilgan.",
+        "admin_ask_reject_reason": (
+            "❗ Rad etish sababini yozib yuboring — bu matn to'g'ridan-to'g'ri "
+            "foydalanuvchiga yuboriladi.\n\n"
+            'Masalan: "Chek noaniq, qaytadan yuboring" yoki "Summasi mos emas".'
+        ),
+        "admin_reject_reason_saved": "✅ Sabab qabul qilindi va foydalanuvchiga yuborildi.",
+        "admin_approved_caption_suffix": "\n\n✅ <b>Tasdiqlandi</b> — {admin_name}",
+        "admin_rejected_caption_suffix": "\n\n❌ <b>Rad etildi</b> — {admin_name}\nSabab: {reason}",
+        "admin_pending_reason_caption_suffix": "\n\n⏳ {admin_name} rad etish sababini yozmoqda...",
         "processing_payment": "⏳ To'lov tekshirilmoqda, biroz kuting...",
         "payment_success": (
             "✅ To'lovingiz muvaffaqiyatli qabul qilindi!\n\n"
@@ -34,7 +67,6 @@ TEXTS = {
             "🔑 Login: <code>{login}</code>\n"
             "🔑 Parol: <code>{password}</code>"
         ),
-        "other_method_soon": "Bu to'lov usuli tez orada qo'shiladi. Hozircha Click yoki Payme dan foydalaning.",
         "subscription_expired": (
             "⏰ Sizning to'lov muddatingiz tugadi.\n\n"
             "Login va parolingiz vaqtincha ishlamay qoladi.\n"
@@ -62,10 +94,43 @@ TEXTS = {
             "Нажмите кнопку ниже 👇"
         ),
         "btn_pay": "💳 Оплатить",
-        "choose_payment_method": "Выберите способ оплаты:",
-        "btn_click": "Click",
-        "btn_payme": "Payme",
-        "btn_other": "Другой способ",
+        "card_payment_instructions": (
+            "💳 Произведите оплату на следующую карту:\n\n"
+            "Номер карты: <code>{card_number}</code>\n"
+            "Владелец карты: <b>{card_holder}</b>\n"
+            "Сумма: <b>{price} сум</b>\n\n"
+            "1️⃣ Нажмите на номер карты, чтобы скопировать его\n"
+            "2️⃣ Оплатите через банкомат или любое мобильное приложение\n"
+            "3️⃣ Отправьте сюда чек об оплате (скриншот или фото) 👇"
+        ),
+        "receipt_invalid": "❗ Пожалуйста, отправьте чек об оплате в виде изображения (скриншота).",
+        "receipt_received": (
+            "✅ Ваш чек принят и отправлен администратору на проверку.\n"
+            "Как только он будет подтверждён, мы сообщим вам здесь, немного подождите."
+        ),
+        "payment_rejected_user": (
+            "❌ К сожалению, ваш платёж не был подтверждён.\n\n"
+            "Причина: {reason}\n\n"
+            "Пожалуйста, проверьте платёж и отправьте чек заново, "
+            "или свяжитесь с администратором."
+        ),
+        "admin_new_payment_request": (
+            "🆕 Новый чек об оплате!\n\n"
+            "👤 Пользователь: {full_name} (@{username})\n"
+            "🆔 Telegram ID: <code>{telegram_id}</code>\n"
+            "💰 Ожидаемая сумма: {price} сум\n\n"
+            "Проверьте чек и выберите одно из действий ниже 👇"
+        ),
+        "admin_already_handled": "⚠️ Этот платёж уже был рассмотрен.",
+        "admin_ask_reject_reason": (
+            "❗ Напишите причину отклонения — этот текст будет отправлен "
+            "пользователю напрямую.\n\n"
+            "Например: «Чек нечёткий, отправьте заново» или «Сумма не совпадает»."
+        ),
+        "admin_reject_reason_saved": "✅ Причина сохранена и отправлена пользователю.",
+        "admin_approved_caption_suffix": "\n\n✅ <b>Подтверждено</b> — {admin_name}",
+        "admin_rejected_caption_suffix": "\n\n❌ <b>Отклонено</b> — {admin_name}\nПричина: {reason}",
+        "admin_pending_reason_caption_suffix": "\n\n⏳ {admin_name} пишет причину отклонения...",
         "processing_payment": "⏳ Проверяем платёж, подождите...",
         "payment_success": (
             "✅ Оплата успешно принята!\n\n"
@@ -87,7 +152,6 @@ TEXTS = {
             "🔑 Логин: <code>{login}</code>\n"
             "🔑 Пароль: <code>{password}</code>"
         ),
-        "other_method_soon": "Этот способ оплаты скоро будет добавлен. Пока используйте Click или Payme.",
         "subscription_expired": (
             "⏰ Срок вашей оплаты истёк.\n\n"
             "Ваш логин и пароль временно перестанут работать.\n"
@@ -115,10 +179,43 @@ TEXTS = {
             "Tap the button below 👇"
         ),
         "btn_pay": "💳 Pay now",
-        "choose_payment_method": "Choose a payment method:",
-        "btn_click": "Click",
-        "btn_payme": "Payme",
-        "btn_other": "Other method",
+        "card_payment_instructions": (
+            "💳 Please make the payment to the following card:\n\n"
+            "Card number: <code>{card_number}</code>\n"
+            "Card holder: <b>{card_holder}</b>\n"
+            "Amount: <b>{price} UZS</b>\n\n"
+            "1️⃣ Tap the card number to copy it\n"
+            "2️⃣ Pay via an ATM or any mobile banking app\n"
+            "3️⃣ Send the payment receipt (screenshot or photo) here 👇"
+        ),
+        "receipt_invalid": "❗ Please send the payment receipt as an image (screenshot).",
+        "receipt_received": (
+            "✅ Your receipt has been received and sent for admin review.\n"
+            "We'll notify you here once it's confirmed, please wait a bit."
+        ),
+        "payment_rejected_user": (
+            "❌ Unfortunately, your payment was not confirmed.\n\n"
+            "Reason: {reason}\n\n"
+            "Please double check the payment and resend the receipt, "
+            "or contact the admin."
+        ),
+        "admin_new_payment_request": (
+            "🆕 New payment receipt!\n\n"
+            "👤 User: {full_name} (@{username})\n"
+            "🆔 Telegram ID: <code>{telegram_id}</code>\n"
+            "💰 Expected amount: {price} UZS\n\n"
+            "Check the receipt and choose one of the actions below 👇"
+        ),
+        "admin_already_handled": "⚠️ This payment request has already been reviewed.",
+        "admin_ask_reject_reason": (
+            "❗ Write the rejection reason — this text will be sent "
+            "directly to the user.\n\n"
+            'For example: "Receipt is unclear, please resend" or "Amount doesn\'t match".'
+        ),
+        "admin_reject_reason_saved": "✅ Reason saved and sent to the user.",
+        "admin_approved_caption_suffix": "\n\n✅ <b>Approved</b> — {admin_name}",
+        "admin_rejected_caption_suffix": "\n\n❌ <b>Rejected</b> — {admin_name}\nReason: {reason}",
+        "admin_pending_reason_caption_suffix": "\n\n⏳ {admin_name} is writing the rejection reason...",
         "processing_payment": "⏳ Checking payment, please wait...",
         "payment_success": (
             "✅ Payment received successfully!\n\n"
@@ -140,7 +237,6 @@ TEXTS = {
             "🔑 Login: <code>{login}</code>\n"
             "🔑 Password: <code>{password}</code>"
         ),
-        "other_method_soon": "This payment method will be added soon. Please use Click or Payme for now.",
         "subscription_expired": (
             "⏰ Your payment period has expired.\n\n"
             "Your login and password will stop working temporarily.\n"

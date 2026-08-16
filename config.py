@@ -37,5 +37,9 @@ class Config:
 
     payment_mode: str = os.getenv("PAYMENT_MODE", "mock")  # "mock" | "real"
 
+    # Qo'lda (karta orqali) to'lov uchun ko'rsatiladigan karta ma'lumotlari
+    card_number: str = os.getenv("CARD_NUMBER", "")
+    card_holder_name: str = os.getenv("CARD_HOLDER_NAME", "")
+
 
 config = Config()

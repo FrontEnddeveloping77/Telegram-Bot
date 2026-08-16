@@ -44,6 +44,40 @@ class User(Base):
     )
 
 
+class PaymentRequest(Base):
+    """
+    Foydalanuvchi yuborgan to'lov cheki (screenshot) va uning admin tomonidan
+    ko'rib chiqilish holati.
+
+    status:
+      pending   - yuborilgan, hali hech kim ko'rib chiqmagan
+      rejecting - biror admin "Rad etish"ni bosgan, sababni yozishini kutmoqda
+      approved  - tasdiqlandi
+      rejected  - rad etildi (reject_reason to'ldirilgan)
+    """
+
+    __tablename__ = "payment_requests"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
+    receipt_file_id: Mapped[str] = mapped_column(String(255))
+
+    status: Mapped[str] = mapped_column(String(20), default="pending")
+
+    # Amalni bajargan/bajarayotgan admin
+    admin_id: Mapped[int] = mapped_column(BigInteger, nullable=True)
+    reject_reason: Mapped[str] = mapped_column(Text, nullable=True)
+
+    # Barcha adminlarga yuborilgan xabarlar: JSON {"<admin_id>": <message_id>}
+    # Qaror qabul qilingach, shu xabarlarni tahrirlab tugmalarni olib tashlash uchun kerak.
+    admin_message_ids: Mapped[str] = mapped_column(Text, nullable=True)
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+    decided_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=True)
+
+
 class Notification(Base):
     """
     Veb-sayt tomonidan yozib qo'yiladigan bildirishnomalar (masalan: 'mahsulot qo'shildi').

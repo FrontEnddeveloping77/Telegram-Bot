@@ -18,10 +18,9 @@ def pay_keyboard(language: str) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def payment_methods_keyboard(language: str) -> InlineKeyboardMarkup:
+def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text=t(language, "btn_click"), callback_data="pay:method:click")
-    builder.button(text=t(language, "btn_payme"), callback_data="pay:method:payme")
-    builder.button(text=t(language, "btn_other"), callback_data="pay:method:other")
-    builder.adjust(2, 1)
+    builder.button(text="✅ Tasdiqlash", callback_data=f"admin:approve:{request_id}")
+    builder.button(text="❌ Rad etish", callback_data=f"admin:reject:{request_id}")
+    builder.adjust(2)
     return builder.as_markup()
