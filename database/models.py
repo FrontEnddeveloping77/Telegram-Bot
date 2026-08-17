@@ -82,6 +82,7 @@ class Notification(Base):
     """
     Veb-sayt tomonidan yozib qo'yiladigan bildirishnomalar (masalan: 'mahsulot qo'shildi').
     Bot bu jadvalni davriy tekshirib, tegishli guruhga yuboradi.
+    photo_url: data:image/... base64 yoki https URL (ixtiyoriy)
     """
 
     __tablename__ = "notifications"
@@ -90,6 +91,7 @@ class Notification(Base):
     site_login: Mapped[str] = mapped_column(String(64), index=True)
     message: Mapped[str] = mapped_column(Text)
     is_sent: Mapped[bool] = mapped_column(Boolean, default=False)
+    photo_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

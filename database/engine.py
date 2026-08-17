@@ -33,3 +33,6 @@ async def init_db() -> None:
             "CREATE INDEX IF NOT EXISTS idx_notifications_pending "
             "ON notifications(is_sent, created_at)"
         )
+        await conn.exec_driver_sql(
+            "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS photo_url TEXT"
+        )
