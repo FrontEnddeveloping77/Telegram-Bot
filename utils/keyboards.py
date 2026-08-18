@@ -20,21 +20,20 @@ def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
 
 
 def reports_keyboard() -> ReplyKeyboardMarkup:
-    """Hisobotlar tugmalari — doim ko'rinib turadi (faqat o'zbekcha)."""
     builder = ReplyKeyboardBuilder()
     builder.row(
-        KeyboardButton(text=t(LANG, "btn_monthly_report")),
-        KeyboardButton(text=t(LANG, "btn_yearly_report")),
+        KeyboardButton(text="📊 Oylik hisobot"),
+        KeyboardButton(text="📈 Yillik hisobot"),
     )
     builder.row(
-        KeyboardButton(text=t(LANG, "btn_store_products")),
-        KeyboardButton(text=t(LANG, "btn_top_category")),
+        KeyboardButton(text="📦 Do'kondagi tovarlar"),
+        KeyboardButton(text="🏆 Top kategoriya"),
     )
     builder.row(
-        KeyboardButton(text=t(LANG, "btn_daily_report")),
-        KeyboardButton(text=t(LANG, "btn_weekly_report")),
+        KeyboardButton(text="📅 Kunlik hisobot"),
+        KeyboardButton(text="📆 Haftalik hisobot"),
     )
-    return builder.as_markup(
-        resize_keyboard=True,
-        is_persistent=True,
+    builder.row(
+        KeyboardButton(text="🏪 Ombor holati"),
     )
+    return builder.as_markup(resize_keyboard=True, is_persistent=True)
