@@ -339,10 +339,41 @@ async def on_top_category(message: Message):
     sold_count = data.get("sold_count") or 0
     total_amount = data.get("total_amount") or 0
 
+    top_size = data.get("top_size") or "—"
+    top_size_sold = data.get("top_size_sold") or 0
+    top_size_amount = data.get("top_size_amount") or 0
+
+    top_color = data.get("top_color") or "—"
+    top_color_sold = data.get("top_color_sold") or 0
+    top_color_amount = data.get("top_color_amount") or 0
+
+    stock_size = data.get("stock_size") or "—"
+    stock_size_qty = data.get("stock_size_qty") or 0
+
+    stock_category = data.get("stock_category") or "—"
+    stock_category_qty = data.get("stock_category_qty") or 0
+
     text = (
-        f"🏆 <b>Eng ko'p sotilgan tovar kategoriyasi:</b> {category}\n"
-        f"📦 <b>Sotilgan miqdor:</b> {_fmt(sold_count)}\n"
-        f"💰 <b>Jami summa:</b> {_fmt(total_amount)} so'm"
+        "🏆 <b>TOP STATISTIKA</b>\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        f"🏆 <b>Eng ko'p sotilgan kategoriya:</b> {category}\n"
+        f"📦 Sotilgan miqdor: {_fmt(sold_count)}\n"
+        f"💰 Jami summa: {_fmt(total_amount)} so'm\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        f"📏 <b>Eng ko'p sotilgan razmer:</b> {top_size}\n"
+        f"📦 Sotilgan miqdor: {_fmt(top_size_sold)}\n"
+        f"💰 Jami summa: {_fmt(top_size_amount)} so'm\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        f"🎨 <b>Eng ko'p sotilgan rang:</b> {top_color}\n"
+        f"📦 Sotilgan miqdor: {_fmt(top_color_sold)}\n"
+        f"💰 Jami summa: {_fmt(top_color_amount)} so'm\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        f"📐 <b>Eng ko'p turib qolgan razmer:</b> {stock_size}\n"
+        f"📊 Qoldiq: {_fmt(stock_size_qty)} dona\n"
+        "━━━━━━━━━━━━━━━━━━━━\n"
+        f"🗂 <b>Eng ko'p turib qolgan kategoriya:</b> {stock_category}\n"
+        f"📊 Qoldiq: {_fmt(stock_category_qty)} dona\n"
+        "━━━━━━━━━━━━━━━━━━━━"
     )
     await message.answer(text, reply_markup=reports_keyboard())
 
