@@ -2,19 +2,12 @@ from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardBut
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from locales.texts import t
 
+LANG = "uz"
 
-def language_keyboard() -> InlineKeyboardMarkup:
+
+def pay_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
-    builder.button(text="🇺🇿 O'zbekcha", callback_data="lang:uz")
-    builder.button(text="🇷🇺 Русский", callback_data="lang:ru")
-    builder.button(text="🇬🇧 English", callback_data="lang:en")
-    builder.adjust(1)
-    return builder.as_markup()
-
-
-def pay_keyboard(language: str) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.button(text=t(language, "btn_pay"), callback_data="pay:start")
+    builder.button(text=t(LANG, "btn_pay"), callback_data="pay:start")
     return builder.as_markup()
 
 
@@ -26,25 +19,22 @@ def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def reports_keyboard(language: str) -> ReplyKeyboardMarkup:
-    """
-    Hisobotlar uchun kategoriya tugmalari.
-    Layout (rasmdagidek 2 ustunli):
-      [ 📊 Oylik hisobot ]  [ 📈 Yillik hisobot ]
-      [ 📦 Do'kondagi tovarlar ]  [ 🏆 Top kategoriya ]
-      [ 📅 Kunlik sof foyda ]  [ 📆 Haftalik sof foyda ]
-    """
+def reports_keyboard() -> ReplyKeyboardMarkup:
+    """Hisobotlar tugmalari — doim ko'rinib turadi (faqat o'zbekcha)."""
     builder = ReplyKeyboardBuilder()
     builder.row(
-        KeyboardButton(text=t(language, "btn_monthly_report")),
-        KeyboardButton(text=t(language, "btn_yearly_report")),
+        KeyboardButton(text=t(LANG, "btn_monthly_report")),
+        KeyboardButton(text=t(LANG, "btn_yearly_report")),
     )
     builder.row(
-        KeyboardButton(text=t(language, "btn_store_products")),
-        KeyboardButton(text=t(language, "btn_top_category")),
+        KeyboardButton(text=t(LANG, "btn_store_products")),
+        KeyboardButton(text=t(LANG, "btn_top_category")),
     )
     builder.row(
-        KeyboardButton(text=t(language, "btn_daily_report")),
-        KeyboardButton(text=t(language, "btn_weekly_report")),
+        KeyboardButton(text=t(LANG, "btn_daily_report")),
+        KeyboardButton(text=t(LANG, "btn_weekly_report")),
     )
-    return builder.as_markup(resize_keyboard=True)
+    return builder.as_markup(
+        resize_keyboard=True,
+        is_persistent=True,
+    )

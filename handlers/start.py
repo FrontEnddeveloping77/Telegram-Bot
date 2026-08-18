@@ -2,8 +2,8 @@ import os
 import logging
 
 from aiogram import Router, F
-from aiogram.filters import CommandStart, Command
-from aiogram.types import Message, CallbackQuery, FSInputFile
+from aiogram.filters import CommandStart
+from aiogram.types import Message, FSInputFile
 from aiogram.enums import ChatType
 
 from config import config
@@ -14,65 +14,69 @@ from database.requests import (
     get_user_by_group_chat_id,
 )
 from locales.texts import t
-from utils.keyboards import language_keyboard, pay_keyboard
+from utils.keyboards import pay_keyboard, reports_keyboard
 from utils.credentials import decrypt_password
 
 router = Router(name="start")
 logger = logging.getLogger(__name__)
 
+LANG = "uz"  # Bot faqat o'zbekcha
 
-async def send_welcome_offer(message: Message, language: str, name: str) -> None:
+
+async def send_welcome_offer(message: Message, name: str) -> None:
     await message.answer(
         t(
-            language,
+            LANG,
             "welcome_offer",
             name=name,
             price=f"{config.product_price:,}".replace(",", " "),
         ),
-        reply_markup=pay_keyboard(language),
+        reply_markup=pay_keyboard(),
     )
 
 
 async def send_active_subscription_info(message: Message, user) -> None:
-    """Obuna faol bo'lganda login/parolni (shifrdan ochib) qayta ko'rsatadi."""
+    """Obuna faol bo'lganda login/parolni ko'rsatadi va hisobot tugmalarini chiqaradi."""
     password = decrypt_password(user.site_password_encrypted)
     await message.answer(
         t(
-            user.language,
+            LANG,
             "already_paid",
             website=config.website_url,
             login=user.site_login,
             password=password,
-        )
+        ),
+        reply_markup=reports_keyboard(),
     )
 
 
-async def send_tutorial_video(message: Message, language: str) -> None:
-    """Birinchi marta /start bosilganda qo'llanma videosini yuboradi (agar fayl mavjud bo'lsa)."""
+async def send_tutorial_video(message: Message) -> None:
+    """Birinchi marta /start bosilganda qo'llanma videosini yuboradi."""
     if not config.video_path or not os.path.exists(config.video_path):
         logger.warning("Qo'llanma video fayli topilmadi: %s", config.video_path)
         return
     try:
         video = FSInputFile(config.video_path)
-        await message.answer_video(video, caption=t(language, "tutorial_caption"))
+        await message.answer_video(video, caption=t(LANG, "tutorial_caption"))
     except Exception:
         logger.exception("Video yuborishda xatolik")
 
 
 @router.message(CommandStart(), F.chat.type.in_({ChatType.GROUP, ChatType.SUPERGROUP}))
 async def cmd_start_in_group(message: Message):
-    """Guruhda /start bosilganda login/parol EMAS, faqat bog'lanish holati ko'rsatiladi."""
+    """Guruhda /start — faqat bog'lanish holati."""
     linked_user = await get_user_by_group_chat_id(message.chat.id)
 
     if linked_user:
         await message.answer(
             "✅ Bu guruh allaqachon bog'langan.\n"
-            "Saytdagi o'zgarishlar (mahsulot, rasxod va h.k.) shu guruhga avtomatik yuborib turiladi."
+            "Saytdagi o'zgarishlar (mahsulot, rasxod va h.k.) shu guruhga avtomatik yuborib turiladi.",
+            reply_markup=reports_keyboard(),
         )
     else:
         await message.answer(
             "🔗 Bu guruhni saytdagi hisobingizga bog'lash uchun, guruh admini "
-            "login va parolni quyidagi formatda yubosin:\n\n"
+            "login va parolni quyidagi formatda yuborsin:\n\n"
             "<code>login parol</code>\n\n"
             "Masalan: <code>user482913 aB3xY9Zk1Qw2</code>"
         )
@@ -86,53 +90,17 @@ async def cmd_start(message: Message):
         username=message.from_user.username,
     )
 
-    if not user.language_selected:
-        # Faqat birinchi marta /start bosilganda til tanlash chiqadi
-        await message.answer(
-            t("uz", "choose_language"),
-            reply_markup=language_keyboard(),
-        )
-        return
+    # Til tanlash yo'q — doim o'zbekcha
+    is_first_time = not user.language_selected
+    if is_first_time:
+        await set_language(message.from_user.id, LANG)
+        await send_tutorial_video(message)
 
-    if user.is_paid:
-        # Obuna hali faol — login/parol har doim qayta ko'rsatiladi (xavfsizlik uchun)
+    # Yangilangan user
+    user = await get_user(message.from_user.id)
+
+    if user and user.is_paid:
         await send_active_subscription_info(message, user)
         return
 
-    # Obuna tugagan yoki hali to'lov qilinmagan — to'lov taklifi ko'rsatiladi
-    await send_welcome_offer(message, user.language, message.from_user.full_name)
-
-
-@router.message(Command("language"))
-async def cmd_language(message: Message):
-    user = await get_user(message.from_user.id)
-    language = user.language if user else "uz"
-    await message.answer(
-        t(language, "choose_language"),
-        reply_markup=language_keyboard(),
-    )
-
-
-@router.callback_query(F.data.startswith("lang:"))
-async def on_language_chosen(callback: CallbackQuery):
-    language = callback.data.split(":", 1)[1]  # uz | ru | en
-
-    existing_user = await get_user(callback.from_user.id)
-    is_first_time = not (existing_user and existing_user.language_selected)
-
-    await set_language(callback.from_user.id, language)
-    await callback.message.edit_text(t(language, "language_set"))
-
-    if is_first_time:
-        # Faqat botga birinchi marta kirganda qo'llanma video yuboriladi
-        await send_tutorial_video(callback.message, language)
-
-    user = await get_user(callback.from_user.id)
-    if user and user.is_paid:
-        await send_active_subscription_info(callback.message, user)
-    else:
-        await send_welcome_offer(
-            callback.message, language, callback.from_user.full_name
-        )
-
-    await callback.answer()
+    await send_welcome_offer(message, message.from_user.full_name)

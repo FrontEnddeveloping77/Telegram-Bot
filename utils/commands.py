@@ -1,49 +1,24 @@
-from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
-from locales.texts import t
+from aiogram import Bot
+from aiogram.types import BotCommand, BotCommandScopeDefault
+
+COMMANDS_UZ = [
+    BotCommand(command="start", description="Botni ishga tushirish / qayta boshlash"),
+    BotCommand(command="menu", description="Hisobotlar menyusi"),
+    BotCommand(command="kunlik", description="Kunlik sof foyda"),
+    BotCommand(command="haftalik", description="Haftalik sof foyda"),
+    BotCommand(command="oylik", description="Oylik sof foyda"),
+    BotCommand(command="yillik", description="Yillik sof foyda"),
+]
 
 
-def language_keyboard() -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.button(text="🇺🇿 O'zbekcha", callback_data="lang:uz")
-    builder.button(text="🇷🇺 Русский", callback_data="lang:ru")
-    builder.button(text="🇬🇧 English", callback_data="lang:en")
-    builder.adjust(1)
-    return builder.as_markup()
-
-
-def pay_keyboard(language: str) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.button(text=t(language, "btn_pay"), callback_data="pay:start")
-    return builder.as_markup()
-
-
-def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.button(text="✅ Tasdiqlash", callback_data=f"admin:approve:{request_id}")
-    builder.button(text="❌ Rad etish", callback_data=f"admin:reject:{request_id}")
-    builder.adjust(2)
-    return builder.as_markup()
-
-
-def reports_keyboard(language: str) -> ReplyKeyboardMarkup:
-    """
-    Hisobotlar tugmalari — doim ko'rinib turadi (persistent).
-    """
-    builder = ReplyKeyboardBuilder()
-    builder.row(
-        KeyboardButton(text=t(language, "btn_monthly_report")),
-        KeyboardButton(text=t(language, "btn_yearly_report")),
-    )
-    builder.row(
-        KeyboardButton(text=t(language, "btn_store_products")),
-        KeyboardButton(text=t(language, "btn_top_category")),
-    )
-    builder.row(
-        KeyboardButton(text=t(language, "btn_daily_report")),
-        KeyboardButton(text=t(language, "btn_weekly_report")),
-    )
-    return builder.as_markup(
-        resize_keyboard=True,
-        is_persistent=True,
+async def setup_bot_commands(bot: Bot) -> None:
+    await bot.delete_my_commands(scope=BotCommandScopeDefault())
+    for lang in ("uz", "ru", "en"):
+        await bot.delete_my_commands(
+            scope=BotCommandScopeDefault(),
+            language_code=lang,
+        )
+    await bot.set_my_commands(
+        commands=COMMANDS_UZ,
+        scope=BotCommandScopeDefault(),
     )

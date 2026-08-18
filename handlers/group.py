@@ -76,8 +76,12 @@ async def on_credentials_submitted(message: Message, bot: Bot):
     except Exception:
         pass
 
+    from utils.keyboards import reports_keyboard
+
     await bot.send_message(
         message.chat.id,
         "✅ Guruh muvaffaqiyatli bog'landi! Endi saytdagi o'zgarishlar (mahsulot, rasxod va h.k.) "
-        "shu guruhga avtomatik yuborib turiladi.",
+        "shu guruhga avtomatik yuborib turiladi.\n\n"
+        "Hisobotlar uchun pastdagi tugmalardan foydalaning 👇",
+        reply_markup=reports_keyboard(),
     )

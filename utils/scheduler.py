@@ -9,7 +9,7 @@ from utils.keyboards import pay_keyboard
 
 logger = logging.getLogger(__name__)
 
-CHECK_INTERVAL_SECONDS = 15  # obunalarni har necha soniyada tekshirish
+CHECK_INTERVAL_SECONDS = 15  # obunalarni har necha soniyada 
 
 
 async def subscription_expiry_watcher(bot: Bot) -> None:
@@ -25,7 +25,7 @@ async def subscription_expiry_watcher(bot: Bot) -> None:
                     await bot.send_message(
                         user.telegram_id,
                         t(user.language, "subscription_expired"),
-                        reply_markup=pay_keyboard(user.language),
+                        reply_markup=pay_keyboard(),
                     )
                 except Exception:
                     logger.exception(

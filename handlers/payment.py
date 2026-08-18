@@ -18,7 +18,7 @@ from database.requests import (
     finalize_payment_approval,
 )
 from locales.texts import t
-from utils.keyboards import admin_review_keyboard
+from utils.keyboards import admin_review_keyboard, reports_keyboard
 from utils.credentials import (
     generate_unique_login,
     generate_strong_password,
@@ -223,6 +223,7 @@ async def on_admin_approve(callback: CallbackQuery, bot: Bot):
                 login=login,
                 password=password,
             ),
+            reply_markup=reports_keyboard(),
         )
     except Exception:
         logger.exception("Userga tasdiqlash xabarini yuborishda xatolik")
