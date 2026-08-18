@@ -1,5 +1,5 @@
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from aiogram.utils.keyboard import InlineKeyboardBuilder
+from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from locales.texts import t
 
 
@@ -24,3 +24,14 @@ def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
     builder.button(text="❌ Rad etish", callback_data=f"admin:reject:{request_id}")
     builder.adjust(2)
     return builder.as_markup()
+
+
+def reports_keyboard(language: str) -> ReplyKeyboardMarkup:
+    """Hisobotlar uchun asosiy kategoriya tugmalari (Reply keyboard)."""
+    builder = ReplyKeyboardBuilder()
+    builder.button(text=t(language, "btn_monthly_report"))
+    builder.button(text=t(language, "btn_yearly_report"))
+    builder.button(text=t(language, "btn_store_products"))
+    builder.button(text=t(language, "btn_top_category"))
+    builder.adjust(2, 2)
+    return builder.as_markup(resize_keyboard=True)

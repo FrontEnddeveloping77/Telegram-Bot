@@ -83,79 +83,91 @@ TEXTS = {
         "profit_yearly": "📊 Yillik sof foyda: {profit} so'm",
         "profit_not_linked": "⚠️ Bu buyruq ishlashi uchun avval guruhni saytdagi hisobingizga bog'lashingiz kerak (login va parolni yuboring).",
         "profit_fetch_error": "❌ Ma'lumotni olishda xatolik yuz berdi. Birozdan keyin qayta urinib ko'ring.",
+        "btn_monthly_report": "📊 Oylik hisobot",
+        "btn_yearly_report": "📈 Yillik hisobot",
+        "btn_store_products": "📦 Do'kondagi tovarlar",
+        "btn_top_category": "🏆 Top kategoriya",
+        "reports_menu": "📋 Hisobotlar menyusi. Kerakli tugmani bosing 👇",
+        "store_products_header": "📦 <b>Do'kondagi tovarlar:</b>\n",
+        "store_products_item": "{index}. <b>{name}</b>\n   Turi: {type}\n   Donasi: {quantity}\n   Jami: {total} so'm",
+        "store_products_total": "💰 <b>Umumiy summa: {total} so'm</b>",
+        "store_products_empty": "📭 Do'konda hozircha tovarlar topilmadi.",
+        "top_category_result": "🏆 Eng ko'p sotilgan tovar kategoriyasi: <b>{category}</b>",
+        "top_category_sold": "📦 Sotilgan miqdor: {count}",
+        "top_category_amount": "💰 Jami summa: {amount} so'm",
     },
     "ru": {
         "choose_language": "Tilni tanlang / Choose language / Выберите язык:",
         "language_set": "✅ Язык установлен на русский.",
         "welcome_offer": (
             "Здравствуйте, {name}!\n\n"
-            "Чтобы воспользоваться сервисом, произведите оплату. "
-            "Цена: {price} сум/в месяц.\n\n"
+            "Чтобы пользоваться сервисом, необходимо оплатить. "
+            "Цена: {price} сум/месяц.\n\n"
             "Нажмите кнопку ниже 👇"
         ),
         "btn_pay": "💳 Оплатить",
         "card_payment_instructions": (
-            "💳 Произведите оплату на следующую карту:\n\n"
+            "💳 Оплатите по указанной карте:\n\n"
             "Номер карты: <code>{card_number}</code>\n"
             "Владелец карты: <b>{card_holder}</b>\n"
             "Сумма: <b>{price} сум</b>\n\n"
-            "1️⃣ Нажмите на номер карты, чтобы скопировать его\n"
+            "1️⃣ Нажмите на номер карты, чтобы скопировать\n"
             "2️⃣ Оплатите через банкомат или любое мобильное приложение\n"
-            "3️⃣ Отправьте сюда чек об оплате (скриншот или фото) 👇"
+            "3️⃣ Отправьте чек об оплате (скриншот или фото) сюда 👇"
         ),
-        "receipt_invalid": "❗ Пожалуйста, отправьте чек об оплате в виде изображения (скриншота).",
+        "receipt_invalid": "❗ Пожалуйста, отправьте чек об оплате в виде фото (скриншота).",
         "receipt_received": (
-            "✅ Ваш чек принят и отправлен администратору на проверку.\n"
-            "Как только он будет подтверждён, мы сообщим вам здесь, немного подождите."
+            "✅ Ваш чек принят и отправлен на проверку администратору.\n"
+            "После подтверждения мы сообщим вам здесь, немного подождите."
         ),
         "payment_rejected_user": (
-            "❌ К сожалению, ваш платёж не был подтверждён.\n\n"
+            "❌ К сожалению, ваша оплата не подтверждена.\n\n"
             "Причина: {reason}\n\n"
-            "Пожалуйста, проверьте платёж и отправьте чек заново, "
-            "или свяжитесь с администратором."
+            "Пожалуйста, проверьте оплату и отправьте чек заново "
+            "или свяжитесь с администратором, если есть вопросы."
         ),
         "admin_new_payment_request": (
             "🆕 Новый чек об оплате!\n\n"
             "👤 Пользователь: {full_name} (@{username})\n"
             "🆔 Telegram ID: <code>{telegram_id}</code>\n"
             "💰 Ожидаемая сумма: {price} сум\n\n"
-            "Проверьте чек и выберите одно из действий ниже 👇"
+            "Проверьте чек и выберите одну из кнопок ниже 👇"
         ),
-        "admin_already_handled": "⚠️ Этот платёж уже был рассмотрен.",
+        "admin_already_handled": "⚠️ Этот запрос на оплату уже обработан.",
         "admin_ask_reject_reason": (
             "❗ Напишите причину отклонения — этот текст будет отправлен "
             "пользователю напрямую.\n\n"
-            "Например: «Чек нечёткий, отправьте заново» или «Сумма не совпадает»."
+            'Например: "Чек нечёткий, отправьте заново" или "Сумма не совпадает".'
         ),
-        "admin_reject_reason_saved": "✅ Причина сохранена и отправлена пользователю.",
+        "admin_reject_reason_saved": "✅ Причина принята и отправлена пользователю.",
         "admin_approved_caption_suffix": "\n\n✅ <b>Подтверждено</b> — {admin_name}",
         "admin_rejected_caption_suffix": "\n\n❌ <b>Отклонено</b> — {admin_name}\nПричина: {reason}",
         "admin_pending_reason_caption_suffix": "\n\n⏳ {admin_name} пишет причину отклонения...",
-        "processing_payment": "⏳ Проверяем платёж, подождите...",
+        "processing_payment": "⏳ Оплата проверяется, немного подождите...",
         "payment_success": (
-            "✅ Оплата успешно принята!\n\n"
-            "🌐 Сайт: {website}\n\n"
-            "🔑 Ваши данные для входа:\n"
+            "✅ Ваша оплата успешно принята!\n\n"
+            "🌐 Веб-сайт: {website}\n\n"
+            "🔑 Ваши личные данные для входа:\n"
             "Логин: <code>{login}</code>\n"
             "Пароль: <code>{password}</code>\n\n"
-            "⚠️ Никому не сообщайте эти данные и сохраните их — повторно они не будут показаны."
+            "⚠️ Никому не сообщайте эти данные и сохраните их — повторно не будут показаны."
         ),
         "payment_success_renewed": (
-            "✅ Оплата успешно принята!\n\n"
-            "🔓 Ваш логин и пароль снова активированы, теперь вы можете войти на сайт.\n"
-            "🌐 Сайт: {website}\n"
+            "✅ Ваша оплата успешно принята!\n\n"
+            "🔓 Логин и пароль снова активированы, вы можете войти на сайт.\n"
+            "🌐 Веб-сайт: {website}\n"
             "Логин: <code>{login}</code>"
         ),
         "already_paid": (
-            "Вы уже произвели оплату.\n\n"
-            "🌐 Сайт: {website}\n"
+            "Вы уже совершили оплату.\n\n"
+            "🌐 Веб-сайт: {website}\n"
             "🔑 Логин: <code>{login}</code>\n"
             "🔑 Пароль: <code>{password}</code>"
         ),
         "subscription_expired": (
             "⏰ Срок вашей оплаты истёк.\n\n"
-            "Ваш логин и пароль временно перестанут работать.\n"
-            "Если вы произведёте оплату снова, ваш логин и пароль снова начнут работать."
+            "Логин и пароль временно перестанут работать.\n"
+            "Если вы снова совершите оплату, логин и пароль снова начнут работать."
         ),
         "tutorial_caption": (
             "🎬 Короткое видео о том, как пользоваться ботом 👆\n\n"
@@ -168,6 +180,18 @@ TEXTS = {
         "profit_yearly": "📊 Чистая прибыль за год: {profit} сум",
         "profit_not_linked": "⚠️ Для работы этой команды сначала привяжите группу к вашему аккаунту на сайте (отправьте логин и пароль).",
         "profit_fetch_error": "❌ Не удалось получить данные. Попробуйте ещё раз чуть позже.",
+        "btn_monthly_report": "📊 Месячный отчёт",
+        "btn_yearly_report": "📈 Годовой отчёт",
+        "btn_store_products": "📦 Товары в магазине",
+        "btn_top_category": "🏆 Топ категория",
+        "reports_menu": "📋 Меню отчётов. Нажмите нужную кнопку 👇",
+        "store_products_header": "📦 <b>Товары в магазине:</b>\n",
+        "store_products_item": "{index}. <b>{name}</b>\n   Тип: {type}\n   Кол-во: {quantity}\n   Сумма: {total} сум",
+        "store_products_total": "💰 <b>Общая сумма: {total} сум</b>",
+        "store_products_empty": "📭 В магазине пока нет товаров.",
+        "top_category_result": "🏆 Самая продаваемая категория: <b>{category}</b>",
+        "top_category_sold": "📦 Продано: {count}",
+        "top_category_amount": "💰 Общая сумма: {amount} сум",
     },
     "en": {
         "choose_language": "Tilni tanlang / Choose language / Выберите язык:",
@@ -178,52 +202,52 @@ TEXTS = {
             "Price: {price} UZS/month.\n\n"
             "Tap the button below 👇"
         ),
-        "btn_pay": "💳 Pay now",
+        "btn_pay": "💳 Pay",
         "card_payment_instructions": (
-            "💳 Please make the payment to the following card:\n\n"
+            "💳 Please pay via the card below:\n\n"
             "Card number: <code>{card_number}</code>\n"
             "Card holder: <b>{card_holder}</b>\n"
             "Amount: <b>{price} UZS</b>\n\n"
             "1️⃣ Tap the card number to copy it\n"
-            "2️⃣ Pay via an ATM or any mobile banking app\n"
+            "2️⃣ Pay via ATM or any mobile banking app\n"
             "3️⃣ Send the payment receipt (screenshot or photo) here 👇"
         ),
-        "receipt_invalid": "❗ Please send the payment receipt as an image (screenshot).",
+        "receipt_invalid": "❗ Please send the payment receipt as a photo (screenshot).",
         "receipt_received": (
-            "✅ Your receipt has been received and sent for admin review.\n"
-            "We'll notify you here once it's confirmed, please wait a bit."
+            "✅ Your receipt has been received and sent to the admin for review.\n"
+            "We will notify you here once it is confirmed — please wait a moment."
         ),
         "payment_rejected_user": (
             "❌ Unfortunately, your payment was not confirmed.\n\n"
             "Reason: {reason}\n\n"
-            "Please double check the payment and resend the receipt, "
-            "or contact the admin."
+            "Please check the payment and send the receipt again, "
+            "or contact the admin if you have questions."
         ),
         "admin_new_payment_request": (
             "🆕 New payment receipt!\n\n"
             "👤 User: {full_name} (@{username})\n"
             "🆔 Telegram ID: <code>{telegram_id}</code>\n"
             "💰 Expected amount: {price} UZS\n\n"
-            "Check the receipt and choose one of the actions below 👇"
+            "Review the receipt and choose one of the buttons below 👇"
         ),
-        "admin_already_handled": "⚠️ This payment request has already been reviewed.",
+        "admin_already_handled": "⚠️ This payment request has already been processed.",
         "admin_ask_reject_reason": (
             "❗ Write the rejection reason — this text will be sent "
             "directly to the user.\n\n"
-            'For example: "Receipt is unclear, please resend" or "Amount doesn\'t match".'
+            'For example: "Receipt is unclear, please resend" or "Amount does not match".'
         ),
-        "admin_reject_reason_saved": "✅ Reason saved and sent to the user.",
+        "admin_reject_reason_saved": "✅ Reason accepted and sent to the user.",
         "admin_approved_caption_suffix": "\n\n✅ <b>Approved</b> — {admin_name}",
         "admin_rejected_caption_suffix": "\n\n❌ <b>Rejected</b> — {admin_name}\nReason: {reason}",
         "admin_pending_reason_caption_suffix": "\n\n⏳ {admin_name} is writing the rejection reason...",
-        "processing_payment": "⏳ Checking payment, please wait...",
+        "processing_payment": "⏳ Payment is being verified, please wait...",
         "payment_success": (
-            "✅ Payment received successfully!\n\n"
+            "✅ Your payment was received successfully!\n\n"
             "🌐 Website: {website}\n\n"
             "🔑 Your personal login details:\n"
             "Login: <code>{login}</code>\n"
             "Password: <code>{password}</code>\n\n"
-            "⚠️ Don't share these with anyone and save them — they won't be shown again."
+            "⚠️ Do not share these details with anyone and save them — they will not be shown again."
         ),
         "payment_success_renewed": (
             "✅ Payment received successfully!\n\n"
@@ -253,6 +277,18 @@ TEXTS = {
         "profit_yearly": "📊 This year's net profit: {profit} UZS",
         "profit_not_linked": "⚠️ To use this command, first link a group to your website account (send login and password there).",
         "profit_fetch_error": "❌ Couldn't fetch the data. Please try again shortly.",
+        "btn_monthly_report": "📊 Monthly report",
+        "btn_yearly_report": "📈 Yearly report",
+        "btn_store_products": "📦 Store products",
+        "btn_top_category": "🏆 Top category",
+        "reports_menu": "📋 Reports menu. Tap a button below 👇",
+        "store_products_header": "📦 <b>Products in store:</b>\n",
+        "store_products_item": "{index}. <b>{name}</b>\n   Type: {type}\n   Qty: {quantity}\n   Total: {total} UZS",
+        "store_products_total": "💰 <b>Grand total: {total} UZS</b>",
+        "store_products_empty": "📭 No products found in the store yet.",
+        "top_category_result": "🏆 Best-selling product category: <b>{category}</b>",
+        "top_category_sold": "📦 Sold quantity: {count}",
+        "top_category_amount": "💰 Total amount: {amount} UZS",
     },
 }
 
