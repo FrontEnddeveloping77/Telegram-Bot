@@ -37,10 +37,11 @@ COMMANDS = {
 async def setup_bot_commands(bot: Bot) -> None:
     """
     Har bir til uchun (uz/ru/en) alohida buyruq tavsiflarini o'rnatadi.
-    Telegram, foydalanuvchining ilova tiliga qarab mos tavsifni ko'rsatadi.
-    Standart (aniqlanmagan til uchun) inglizcha tavsif ishlatiladi.
+    Standart (default) til — o'zbekcha.
+    Telegram foydalanuvchi ilovasining tiliga qarab mos tavsifni ko'rsatadi.
     """
-    await bot.set_my_commands(commands=COMMANDS["en"], scope=BotCommandScopeDefault())
+    # Default — o'zbekcha (Telegram tili aniqlanmaganda yoki uz bo'lmaganda)
+    await bot.set_my_commands(commands=COMMANDS["uz"], scope=BotCommandScopeDefault())
 
     for language_code, commands in COMMANDS.items():
         await bot.set_my_commands(
