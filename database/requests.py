@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, update
 from config import config
 from database.engine import async_session
-from database.models import User, Notification, PaymentRequest
+from database.models import User, Notification, PaymentRequest, LinkedGroup
 
 
 async def get_or_create_user(
@@ -123,23 +123,66 @@ async def get_user_by_login(site_login: str) -> User | None:
 
 
 async def get_user_by_group_chat_id(chat_id: int) -> User | None:
+    """Guruh chat_id orqali user topadi (ko'p guruhli bog'lanish)."""
     async with async_session() as session:
+        # Avval yangi jadvaldan
+        lg = await session.execute(
+            select(LinkedGroup).where(LinkedGroup.chat_id == chat_id)
+        )
+        linked = lg.scalar_one_or_none()
+        if linked:
+            result = await session.execute(
+                select(User).where(User.id == linked.user_id)
+            )
+            return result.scalar_one_or_none()
+
+        # Eski ustun (migratsiya / orqaga moslik)
         result = await session.execute(
             select(User).where(User.linked_group_chat_id == chat_id)
         )
         return result.scalar_one_or_none()
 
 
+async def get_linked_group_chat_ids(user: User) -> list[int]:
+    """Userning barcha bog'langan guruhlari."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(LinkedGroup.chat_id).where(LinkedGroup.user_id == user.id)
+        )
+        ids = [row[0] for row in result.all()]
+
+        # Eski ustun: agar jadvalda yo'q bo'lsa, qo'shib qo'yamiz
+        if user.linked_group_chat_id and user.linked_group_chat_id not in ids:
+            ids.append(user.linked_group_chat_id)
+        return ids
+
+
 async def link_group_to_user(site_login: str, chat_id: int) -> None:
-    """Berilgan login egasi userga shu guruh (chat_id) ni bog'laydi."""
+    """
+    Login egasiga guruhni bog'laydi.
+    Bir login → cheksiz guruh. Bir xil chat_id qayta bog'lansa — hech narsa o'zgarmaydi.
+    Agar chat_id boshqa userga bog'langan bo'lsa — o'sha bog'lanish yangi userga o'tkaziladi.
+    """
     async with async_session() as session:
         result = await session.execute(
             select(User).where(User.site_login == site_login)
         )
         user = result.scalar_one_or_none()
-        if user:
-            user.linked_group_chat_id = chat_id
-            await session.commit()
+        if not user:
+            return
+
+        existing = await session.execute(
+            select(LinkedGroup).where(LinkedGroup.chat_id == chat_id)
+        )
+        row = existing.scalar_one_or_none()
+        if row:
+            row.user_id = user.id
+        else:
+            session.add(LinkedGroup(user_id=user.id, chat_id=chat_id))
+
+        # Eski ustunni ham yangilaymiz (oxirgi bog'langan guruh)
+        user.linked_group_chat_id = chat_id
+        await session.commit()
 
 
 async def get_pending_notifications() -> list[Notification]:

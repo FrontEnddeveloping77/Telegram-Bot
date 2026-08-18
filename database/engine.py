@@ -36,3 +36,24 @@ async def init_db() -> None:
         await conn.exec_driver_sql(
             "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS photo_url TEXT"
         )
+        await conn.exec_driver_sql(
+            """CREATE TABLE IF NOT EXISTS linked_groups (
+                id SERIAL PRIMARY KEY,
+                user_id INTEGER NOT NULL,
+                chat_id BIGINT NOT NULL UNIQUE,
+                created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+            )"""
+        )
+        await conn.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS idx_linked_groups_user_id ON linked_groups(user_id)"
+        )
+        await conn.exec_driver_sql(
+            "CREATE INDEX IF NOT EXISTS idx_linked_groups_chat_id ON linked_groups(chat_id)"
+        )
+        # Eski bitta-guruh ustunidagi ma'lumotni yangi jadvalga ko'chirish
+        await conn.exec_driver_sql(
+            """INSERT INTO linked_groups (user_id, chat_id)
+               SELECT id, linked_group_chat_id FROM users
+               WHERE linked_group_chat_id IS NOT NULL
+               ON CONFLICT (chat_id) DO NOTHING"""
+        )

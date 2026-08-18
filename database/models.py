@@ -36,9 +36,22 @@ class User(Base):
     # Veb-sayt tomonidan login tekshirish uchun (qaytarib bo'lmaydigan xesh, bcrypt)
     site_password_hash: Mapped[str] = mapped_column(String(255), nullable=True)
 
-    # Ushbu userning login/paroli tasdiqlangan Telegram guruhi (bildirishnomalar shu yerga yuboriladi)
+    # Eski maydon (1 guruh) — moslik uchun qoldiriladi; asosiy bog'lanish LinkedGroup jadvalida
     linked_group_chat_id: Mapped[int] = mapped_column(BigInteger, nullable=True)
 
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
+
+
+class LinkedGroup(Base):
+    """Bir login (user) bir nechta Telegram guruhiga bog'lanishi mumkin."""
+
+    __tablename__ = "linked_groups"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(index=True)
+    chat_id: Mapped[int] = mapped_column(BigInteger, unique=True, index=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

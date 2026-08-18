@@ -74,33 +74,45 @@ async def notifications_watcher(bot: Bot) -> None:
             for notification in pending:
                 user = await get_user_by_login(notification.site_login)
 
-                if not user or not user.linked_group_chat_id:
+                if not user:
                     logger.debug(
-                        "Guruh bog'lanmagan yoki user yo'q: login=%s",
+                        "User yo'q: login=%s",
                         notification.site_login,
                     )
                     continue
 
-                try:
-                    photo = getattr(notification, "photo_url", None)
-                    await _send_notification(
-                        bot,
-                        user.linked_group_chat_id,
-                        notification.message,
-                        photo,
+                chat_ids = await get_linked_group_chat_ids(user)
+                if not chat_ids:
+                    logger.debug(
+                        "Guruh bog'lanmagan: login=%s",
+                        notification.site_login,
                     )
+                    continue
+
+                photo = getattr(notification, "photo_url", None)
+                any_sent = False
+                for chat_id in chat_ids:
+                    try:
+                        await _send_notification(
+                            bot,
+                            chat_id,
+                            notification.message,
+                            photo,
+                        )
+                        any_sent = True
+                        logger.info(
+                            "Bildirishnoma yuborildi: id=%s chat=%s photo=%s",
+                            notification.id,
+                            chat_id,
+                            "YES" if photo else "NO",
+                        )
+                    except Exception:
+                        logger.exception(
+                            "Guruhga bildirishnoma yuborib bo'lmadi: chat_id=%s",
+                            chat_id,
+                        )
+                if any_sent:
                     await mark_notification_sent(notification.id)
-                    logger.info(
-                        "Bildirishnoma yuborildi: id=%s chat=%s photo=%s",
-                        notification.id,
-                        user.linked_group_chat_id,
-                        "YES" if photo else "NO",
-                    )
-                except Exception:
-                    logger.exception(
-                        "Guruhga bildirishnoma yuborib bo'lmadi: chat_id=%s",
-                        user.linked_group_chat_id,
-                    )
         except Exception:
             logger.exception("Bildirishnomalarni tekshirishda xatolik")
 

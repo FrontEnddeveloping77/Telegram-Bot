@@ -80,8 +80,9 @@ async def on_credentials_submitted(message: Message, bot: Bot):
 
     await bot.send_message(
         message.chat.id,
-        "✅ Guruh muvaffaqiyatli bog'landi! Endi saytdagi o'zgarishlar (mahsulot, rasxod va h.k.) "
-        "shu guruhga avtomatik yuborib turiladi.\n\n"
+        "✅ Guruh muvaffaqiyatli bog'landi!\n\n"
+        "Bir login bilan cheksiz guruh bog'lash mumkin.\n"
+        "Saytdagi o'zgarishlar barcha bog'langan guruhlarga yuboriladi.\n\n"
         "Hisobotlar uchun pastdagi tugmalardan foydalaning 👇",
         reply_markup=reports_keyboard(),
     )
