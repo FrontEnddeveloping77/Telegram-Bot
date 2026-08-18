@@ -1,51 +1,49 @@
-from aiogram import Bot
-from aiogram.types import BotCommand, BotCommandScopeDefault
-
-COMMANDS = {
-    "uz": [
-        BotCommand(
-            command="start", description="Botni ishga tushirish / qayta boshlash"
-        ),
-        BotCommand(command="language", description="Tilni almashtirish"),
-        BotCommand(command="menu", description="Hisobotlar menyusi"),
-        BotCommand(command="kunlik", description="Kunlik sof foyda"),
-        BotCommand(command="haftalik", description="Haftalik sof foyda"),
-        BotCommand(command="oylik", description="Oylik sof foyda"),
-        BotCommand(command="yillik", description="Yillik sof foyda"),
-    ],
-    "ru": [
-        BotCommand(command="start", description="Запустить / перезапустить бота"),
-        BotCommand(command="language", description="Сменить язык"),
-        BotCommand(command="menu", description="Меню отчётов"),
-        BotCommand(command="kunlik", description="Чистая прибыль за день"),
-        BotCommand(command="haftalik", description="Чистая прибыль за неделю"),
-        BotCommand(command="oylik", description="Чистая прибыль за месяц"),
-        BotCommand(command="yillik", description="Чистая прибыль за год"),
-    ],
-    "en": [
-        BotCommand(command="start", description="Start / restart the bot"),
-        BotCommand(command="language", description="Change language"),
-        BotCommand(command="menu", description="Reports menu"),
-        BotCommand(command="kunlik", description="Daily net profit"),
-        BotCommand(command="haftalik", description="Weekly net profit"),
-        BotCommand(command="oylik", description="Monthly net profit"),
-        BotCommand(command="yillik", description="Yearly net profit"),
-    ],
-}
+from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
+from locales.texts import t
 
 
-async def setup_bot_commands(bot: Bot) -> None:
+def language_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text="🇺🇿 O'zbekcha", callback_data="lang:uz")
+    builder.button(text="🇷🇺 Русский", callback_data="lang:ru")
+    builder.button(text="🇬🇧 English", callback_data="lang:en")
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def pay_keyboard(language: str) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text=t(language, "btn_pay"), callback_data="pay:start")
+    return builder.as_markup()
+
+
+def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Tasdiqlash", callback_data=f"admin:approve:{request_id}")
+    builder.button(text="❌ Rad etish", callback_data=f"admin:reject:{request_id}")
+    builder.adjust(2)
+    return builder.as_markup()
+
+
+def reports_keyboard(language: str) -> ReplyKeyboardMarkup:
     """
-    Har bir til uchun (uz/ru/en) alohida buyruq tavsiflarini o'rnatadi.
-    Standart (default) til — o'zbekcha.
-    Telegram foydalanuvchi ilovasining tiliga qarab mos tavsifni ko'rsatadi.
+    Hisobotlar tugmalari — doim ko'rinib turadi (persistent).
     """
-    # Default — o'zbekcha (Telegram tili aniqlanmaganda yoki uz bo'lmaganda)
-    await bot.set_my_commands(commands=COMMANDS["uz"], scope=BotCommandScopeDefault())
-
-    for language_code, commands in COMMANDS.items():
-        await bot.set_my_commands(
-            commands=commands,
-            scope=BotCommandScopeDefault(),
-            language_code=language_code,
-        )
+    builder = ReplyKeyboardBuilder()
+    builder.row(
+        KeyboardButton(text=t(language, "btn_monthly_report")),
+        KeyboardButton(text=t(language, "btn_yearly_report")),
+    )
+    builder.row(
+        KeyboardButton(text=t(language, "btn_store_products")),
+        KeyboardButton(text=t(language, "btn_top_category")),
+    )
+    builder.row(
+        KeyboardButton(text=t(language, "btn_daily_report")),
+        KeyboardButton(text=t(language, "btn_weekly_report")),
+    )
+    return builder.as_markup(
+        resize_keyboard=True,
+        is_persistent=True,
+    )
