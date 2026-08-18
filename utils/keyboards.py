@@ -1,8 +1,17 @@
-from aiogram.types import InlineKeyboardMarkup, ReplyKeyboardMarkup, KeyboardButton
+from aiogram.types import (
+    InlineKeyboardMarkup,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardRemove,
+)
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from locales.texts import t
 
 LANG = "uz"
+
+# Tugma matnlari
+BTN_OPEN_MENU = "📋 Menyuni ochish"
+BTN_CLOSE_MENU = "❌ Menyuni yopish"
 
 
 def pay_keyboard() -> InlineKeyboardMarkup:
@@ -19,7 +28,15 @@ def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def menu_open_keyboard() -> ReplyKeyboardMarkup:
+    """Yopiq holat — faqat bitta 'Menyuni ochish' tugmasi."""
+    builder = ReplyKeyboardBuilder()
+    builder.row(KeyboardButton(text=BTN_OPEN_MENU))
+    return builder.as_markup(resize_keyboard=True, is_persistent=False)
+
+
 def reports_keyboard() -> ReplyKeyboardMarkup:
+    """Ochiq holat — to'liq hisobot tugmalari + yopish."""
     builder = ReplyKeyboardBuilder()
     builder.row(
         KeyboardButton(text="📊 Oylik hisobot"),
@@ -36,4 +53,11 @@ def reports_keyboard() -> ReplyKeyboardMarkup:
     builder.row(
         KeyboardButton(text="🏪 Ombor holati"),
     )
-    return builder.as_markup(resize_keyboard=True, is_persistent=True)
+    builder.row(
+        KeyboardButton(text=BTN_CLOSE_MENU),
+    )
+    return builder.as_markup(resize_keyboard=True, is_persistent=False)
+
+
+def remove_keyboard() -> ReplyKeyboardRemove:
+    return ReplyKeyboardRemove()

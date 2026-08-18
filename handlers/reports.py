@@ -9,7 +9,12 @@ from aiogram.enums import ChatType
 from config import config
 from database.requests import get_user, get_user_by_group_chat_id
 from locales.texts import t
-from utils.keyboards import reports_keyboard
+from utils.keyboards import (
+    reports_keyboard,
+    menu_open_keyboard,
+    BTN_OPEN_MENU,
+    BTN_CLOSE_MENU,
+)
 
 router = Router(name="reports")
 logger = logging.getLogger(__name__)
@@ -241,6 +246,27 @@ async def cmd_profit_report(message: Message):
     command = message.text.split()[0].lstrip("/").split("@")[0]
     period = PERIOD_MAP[command]
     await _send_period_report(message, period)
+
+
+@router.message(F.text == BTN_OPEN_MENU)
+async def on_open_menu(message: Message):
+    site_login, language = await _resolve_login(message)
+    if not site_login:
+        await message.answer(t(language, "profit_not_linked"))
+        return
+    await message.answer(
+        "📋 Hisobotlar menyusi. Kerakli tugmani bosing 👇",
+        reply_markup=reports_keyboard(),
+    )
+
+
+@router.message(F.text == BTN_CLOSE_MENU)
+async def on_close_menu(message: Message):
+    await message.answer(
+        "✅ Menyuni yopildi.\n"
+        "Qayta ochish uchun «📋 Menyuni ochish» tugmasini bosing.",
+        reply_markup=menu_open_keyboard(),
+    )
 
 
 @router.message(Command("menu"))
