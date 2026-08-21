@@ -9,10 +9,6 @@ from locales.texts import t
 
 LANG = "uz"
 
-# Tugma matnlari
-BTN_OPEN_MENU = "📋 Menyuni ochish"
-BTN_CLOSE_MENU = "❌ Menyuni yopish"
-
 
 def pay_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
@@ -28,15 +24,10 @@ def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def menu_open_keyboard() -> ReplyKeyboardMarkup:
-    """Yopiq holat — faqat bitta 'Menyuni ochish' tugmasi."""
-    builder = ReplyKeyboardBuilder()
-    builder.row(KeyboardButton(text=BTN_OPEN_MENU))
-    return builder.as_markup(resize_keyboard=True, is_persistent=False)
-
-
 def reports_keyboard() -> ReplyKeyboardMarkup:
-    """Ochiq holat — to'liq hisobot tugmalari + yopish."""
+    """Hisobotlar pastki menyusi.
+    Ochish/yopish Telegramning o'z Menu (ko'k) tugmasi orqali amalga oshiriladi.
+    """
     builder = ReplyKeyboardBuilder()
     builder.row(
         KeyboardButton(text="📊 Oylik hisobot"),
@@ -53,10 +44,7 @@ def reports_keyboard() -> ReplyKeyboardMarkup:
     builder.row(
         KeyboardButton(text="🏪 Ombor holati"),
     )
-    builder.row(
-        KeyboardButton(text=BTN_CLOSE_MENU),
-    )
-    return builder.as_markup(resize_keyboard=True, is_persistent=False)
+    return builder.as_markup(resize_keyboard=True, is_persistent=True)
 
 
 def remove_keyboard() -> ReplyKeyboardRemove:

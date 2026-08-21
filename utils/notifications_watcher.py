@@ -9,6 +9,7 @@ from database.requests import (
     get_pending_notifications,
     mark_notification_sent,
     get_user_by_login,
+    get_linked_group_chat_ids,
 )
 
 logger = logging.getLogger(__name__)

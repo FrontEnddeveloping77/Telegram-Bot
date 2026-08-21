@@ -14,7 +14,7 @@ from database.requests import (
     get_user_by_group_chat_id,
 )
 from locales.texts import t
-from utils.keyboards import pay_keyboard, menu_open_keyboard
+from utils.keyboards import pay_keyboard, reports_keyboard
 from utils.credentials import decrypt_password
 
 router = Router(name="start")
@@ -46,7 +46,7 @@ async def send_active_subscription_info(message: Message, user) -> None:
             login=user.site_login,
             password=password,
         ),
-        reply_markup=menu_open_keyboard(),
+        reply_markup=reports_keyboard(),
     )
 
 
@@ -70,8 +70,9 @@ async def cmd_start_in_group(message: Message):
     if linked_user:
         await message.answer(
             "✅ Bu guruh allaqachon bog'langan.\n"
-            "Saytdagi o'zgarishlar (mahsulot, rasxod va h.k.) shu guruhga avtomatik yuborib turiladi.",
-            reply_markup=menu_open_keyboard(),
+            "Saytdagi o'zgarishlar (mahsulot, rasxod va h.k.) shu guruhga avtomatik yuborib turiladi.\n"
+            "Hisobotlar uchun chap tomondagi <b>Menu</b> tugmasidan foydalaning yoki /menu bosing.",
+            reply_markup=reports_keyboard(),
         )
     else:
         await message.answer(

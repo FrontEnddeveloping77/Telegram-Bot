@@ -9,12 +9,7 @@ from aiogram.enums import ChatType
 from config import config
 from database.requests import get_user, get_user_by_group_chat_id
 from locales.texts import t
-from utils.keyboards import (
-    reports_keyboard,
-    menu_open_keyboard,
-    BTN_OPEN_MENU,
-    BTN_CLOSE_MENU,
-)
+from utils.keyboards import reports_keyboard
 
 router = Router(name="reports")
 logger = logging.getLogger(__name__)
@@ -248,35 +243,16 @@ async def cmd_profit_report(message: Message):
     await _send_period_report(message, period)
 
 
-@router.message(F.text == BTN_OPEN_MENU)
-async def on_open_menu(message: Message):
-    site_login, language = await _resolve_login(message)
-    if not site_login:
-        await message.answer(t(language, "profit_not_linked"))
-        return
-    await message.answer(
-        "📋 Hisobotlar menyusi. Kerakli tugmani bosing 👇",
-        reply_markup=reports_keyboard(),
-    )
-
-
-@router.message(F.text == BTN_CLOSE_MENU)
-async def on_close_menu(message: Message):
-    await message.answer(
-        "✅ Menyuni yopildi.\n"
-        "Qayta ochish uchun «📋 Menyuni ochish» tugmasini bosing.",
-        reply_markup=menu_open_keyboard(),
-    )
-
-
 @router.message(Command("menu"))
 async def cmd_menu(message: Message):
+    """Telegram Menu tugmasi yoki /menu — hisobotlar pastki menyusini chiqaradi."""
     site_login, language = await _resolve_login(message)
     if not site_login:
         await message.answer(t(language, "profit_not_linked"))
         return
     await message.answer(
-        "📋 Hisobotlar menyusi. Kerakli tugmani bosing 👇",
+        "📋 Hisobotlar menyusi. Kerakli tugmani bosing 👇\n"
+        "Yoki chap tomondagi <b>Menu</b> tugmasidan buyruqlarni tanlang.",
         reply_markup=reports_keyboard(),
     )
 
@@ -302,6 +278,7 @@ async def on_weekly(message: Message):
 
 
 @router.message(F.text == "📦 Do'kondagi tovarlar")
+@router.message(Command("tovarlar"))
 async def on_store_products(message: Message):
     site_login, language = await _resolve_login(message)
     if not site_login:
@@ -347,6 +324,7 @@ async def on_store_products(message: Message):
 
 
 @router.message(F.text == "🏆 Top kategoriya")
+@router.message(Command("top"))
 async def on_top_category(message: Message):
     site_login, language = await _resolve_login(message)
     if not site_login:
@@ -405,6 +383,7 @@ async def on_top_category(message: Message):
 
 
 @router.message(F.text == "🏪 Ombor holati")
+@router.message(Command("ombor"))
 async def on_warehouse(message: Message):
     site_login, language = await _resolve_login(message)
     if not site_login:
