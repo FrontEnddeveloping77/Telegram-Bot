@@ -44,6 +44,10 @@ def reports_keyboard() -> ReplyKeyboardMarkup:
     builder.row(
         KeyboardButton(text="🏪 Ombor holati"),
     )
+    builder.row(
+        KeyboardButton(text="💸 Jami qarzimiz"),
+        KeyboardButton(text="👥 Bizga qarzdorlar"),
+    )
     return builder.as_markup(resize_keyboard=True, is_persistent=True)
 
 

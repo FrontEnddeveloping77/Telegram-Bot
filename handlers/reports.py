@@ -176,6 +176,44 @@ async def _fetch_warehouse(site_login: str) -> dict | None:
     return None
 
 
+async def _fetch_debts(site_login: str) -> dict | None:
+    """Jami qarzimiz — tovar berganlarga (supplier)."""
+    url = f"{_api_base()}/api/bot/debts"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url,
+                params={"login": site_login},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp:
+                if resp.status != 200:
+                    logger.warning("debts API status=%s", resp.status)
+                    return None
+                return await resp.json(content_type=None)
+    except Exception:
+        logger.exception("debts xato")
+        return None
+
+
+async def _fetch_customer_debts(site_login: str) -> dict | None:
+    """Bizga qarzdorlar — nasiyaga sotilgan mijozlar."""
+    url = f"{_api_base()}/api/bot/customer-debts"
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(
+                url,
+                params={"login": site_login},
+                timeout=aiohttp.ClientTimeout(total=15),
+            ) as resp:
+                if resp.status != 200:
+                    logger.warning("customer-debts API status=%s", resp.status)
+                    return None
+                return await resp.json(content_type=None)
+    except Exception:
+        logger.exception("customer-debts xato")
+        return None
+
+
 def _format_full_report(period: str, data: dict) -> str:
     title = PERIOD_TITLES.get(period, "HISOBOT")
     revenue = data.get("revenue", 0)
@@ -409,3 +447,118 @@ async def on_warehouse(message: Message):
         "━━━━━━━━━━━━━━━━━━━━"
     )
     await message.answer(text, reply_markup=reports_keyboard())
+
+
+# =========================================================
+# QARZLAR — backend: /api/bot/debts va /api/bot/customer-debts
+# =========================================================
+
+
+@router.message(F.text == "💸 Jami qarzimiz")
+@router.message(Command("jamiqarz"))
+async def on_total_debt_ours(message: Message):
+    site_login, language = await _resolve_login(message)
+    if not site_login:
+        await message.answer(t(language, "profit_not_linked"))
+        return
+
+    data = await _fetch_debts(site_login)
+    if data is None:
+        await message.answer(
+            t(language, "profit_fetch_error"),
+            reply_markup=reports_keyboard(),
+        )
+        return
+
+    debts = data.get("debts") or []
+    total_debt = data.get("total_debt") or 0
+
+    if not debts:
+        await message.answer(
+            "💸 <b>JAMI QARZIMIZ</b>\n\n"
+            "✅ Hozircha tovar berganlarga ochiq qarz yo‘q.",
+            reply_markup=reports_keyboard(),
+        )
+        return
+
+    lines = [
+        "💸 <b>JAMI QARZIMIZ</b>",
+        "━━━━━━━━━━━━━━━━━━━━",
+        f"📉 <b>Jami qarz:</b> {_fmt(total_debt)} so'm",
+        "━━━━━━━━━━━━━━━━━━━━",
+        "",
+    ]
+    for i, d in enumerate(debts, 1):
+        name = d.get("supplier") or "—"
+        phone = d.get("supplier_phone") or ""
+        debt = d.get("debt") or 0
+        paid = d.get("total_paid") or 0
+        cost = d.get("total_cost") or 0
+        cats = d.get("categories") or []
+        cat_str = ", ".join(cats) if cats else "—"
+        block = (
+            f"{i}. <b>{name}</b>\n"
+            + (f"   📞 {phone}\n" if phone else "")
+            + f"   🗂 {cat_str}\n"
+            + f"   💰 Jami: {_fmt(cost)} · To‘langan: {_fmt(paid)}\n"
+            + f"   📉 Qarz: <b>{_fmt(debt)} so'm</b>"
+        )
+        lines.append(block)
+        lines.append("")
+
+    lines.append("━━━━━━━━━━━━━━━━━━━━")
+    await message.answer("\n".join(lines), reply_markup=reports_keyboard())
+
+
+@router.message(F.text == "👥 Bizga qarzdorlar")
+@router.message(Command("bizgaqarz"))
+async def on_debtors(message: Message):
+    site_login, language = await _resolve_login(message)
+    if not site_login:
+        await message.answer(t(language, "profit_not_linked"))
+        return
+
+    data = await _fetch_customer_debts(site_login)
+    if data is None:
+        await message.answer(
+            t(language, "profit_fetch_error"),
+            reply_markup=reports_keyboard(),
+        )
+        return
+
+    debts = data.get("debts") or []
+    total_debt = data.get("total_debt") or 0
+
+    if not debts:
+        await message.answer(
+            "👥 <b>BIZGA QARZDORLAR</b>\n\n" "✅ Hozircha mijozlardan ochiq qarz yo‘q.",
+            reply_markup=reports_keyboard(),
+        )
+        return
+
+    lines = [
+        "👥 <b>BIZGA QARZDORLAR</b>",
+        "━━━━━━━━━━━━━━━━━━━━",
+        f"📉 <b>Jami mijoz qarzi:</b> {_fmt(total_debt)} so'm",
+        "━━━━━━━━━━━━━━━━━━━━",
+        "",
+    ]
+    for i, d in enumerate(debts, 1):
+        name = d.get("customer_name") or "—"
+        phone = d.get("customer_phone") or ""
+        debt = d.get("debt") or 0
+        paid = d.get("total_paid") or 0
+        total = d.get("total_amount") or 0
+        cnt = d.get("sales_count") or 0
+        block = (
+            f"{i}. <b>{name}</b>\n"
+            + (f"   📞 {phone}\n" if phone else "")
+            + f"   🛒 Sotuvlar: {cnt} ta\n"
+            + f"   💰 Jami: {_fmt(total)} · To‘langan: {_fmt(paid)}\n"
+            + f"   📉 Qarz: <b>{_fmt(debt)} so'm</b>"
+        )
+        lines.append(block)
+        lines.append("")
+
+    lines.append("━━━━━━━━━━━━━━━━━━━━")
+    await message.answer("\n".join(lines), reply_markup=reports_keyboard())
