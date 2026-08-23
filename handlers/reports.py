@@ -1,4 +1,5 @@
 import logging
+from typing import Optional, Tuple
 
 import aiohttp
 from aiogram import Router, F
@@ -29,7 +30,7 @@ PERIOD_TITLES = {
 }
 
 
-async def _resolve_login(message: Message) -> tuple[str | None, str]:
+async def _resolve_login(message: Message) -> Tuple[Optional[str], str]:
     if message.chat.type == ChatType.PRIVATE:
         user = await get_user(message.from_user.id)
         if user and user.site_login and user.is_paid:
@@ -45,7 +46,7 @@ async def _resolve_login(message: Message) -> tuple[str | None, str]:
 def _api_base() -> str:
     base = (getattr(config, "api_url", None) or "").strip()
     if not base:
-        base = (config.website_url or "").strip()
+        base = (getattr(config, "website_url", None) or "").strip()
     if not base or "frontend" in base:
         base = "https://sotuv-menejer-backend.vercel.app"
     return base.rstrip("/")
@@ -58,14 +59,8 @@ def _fmt(value) -> str:
         return str(value)
 
 
-async def _fetch_full_report(site_login: str, period: str) -> dict | None:
-    """
-    To'liq hisobot:
-    { revenue, profit, expense, net_profit, sold, total_products, total_stock }
-    """
+async def _fetch_full_report(site_login: str, period: str):
     base = _api_base()
-
-    # Yangi batafsil endpoint
     url = f"{base}/api/bot/report"
     try:
         async with aiohttp.ClientSession() as session:
@@ -83,7 +78,6 @@ async def _fetch_full_report(site_login: str, period: str) -> dict | None:
     except Exception:
         logger.exception("report API xato")
 
-    # Fallback: eski profits endpoint (faqat sof foyda)
     url2 = f"{base}/api/bot/profits/{site_login}"
     field_map = {
         "daily": "dailyProfit",
@@ -112,11 +106,10 @@ async def _fetch_full_report(site_login: str, period: str) -> dict | None:
                         }
     except Exception:
         logger.exception("profits fallback xato")
-
     return None
 
 
-async def _fetch_products(site_login: str) -> dict | None:
+async def _fetch_products(site_login: str):
     url = f"{_api_base()}/api/bot/products"
     try:
         async with aiohttp.ClientSession() as session:
@@ -133,7 +126,7 @@ async def _fetch_products(site_login: str) -> dict | None:
         return None
 
 
-async def _fetch_top_category(site_login: str) -> dict | None:
+async def _fetch_top_category(site_login: str):
     url = f"{_api_base()}/api/bot/top_category"
     try:
         async with aiohttp.ClientSession() as session:
@@ -150,7 +143,7 @@ async def _fetch_top_category(site_login: str) -> dict | None:
         return None
 
 
-async def _fetch_warehouse(site_login: str) -> dict | None:
+async def _fetch_warehouse(site_login: str):
     url = f"{_api_base()}/api/bot/warehouse"
     try:
         async with aiohttp.ClientSession() as session:
@@ -164,7 +157,6 @@ async def _fetch_warehouse(site_login: str) -> dict | None:
     except Exception:
         logger.exception("warehouse xato")
 
-    # Fallback: products dan hisoblash
     data = await _fetch_products(site_login)
     if data and "products" in data:
         products = data["products"] or []
@@ -176,8 +168,7 @@ async def _fetch_warehouse(site_login: str) -> dict | None:
     return None
 
 
-async def _fetch_debts(site_login: str) -> dict | None:
-    """Jami qarzimiz — tovar berganlarga (supplier)."""
+async def _fetch_debts(site_login: str):
     url = f"{_api_base()}/api/bot/debts"
     try:
         async with aiohttp.ClientSession() as session:
@@ -195,8 +186,7 @@ async def _fetch_debts(site_login: str) -> dict | None:
         return None
 
 
-async def _fetch_customer_debts(site_login: str) -> dict | None:
-    """Bizga qarzdorlar — nasiyaga sotilgan mijozlar."""
+async def _fetch_customer_debts(site_login: str):
     url = f"{_api_base()}/api/bot/customer-debts"
     try:
         async with aiohttp.ClientSession() as session:
@@ -228,14 +218,13 @@ def _format_full_report(period: str, data: dict) -> str:
     net_label = "umumiy sof foyda"
     net_suffix = "" if float(net) >= 0 else " (ziyon)"
 
-    # Period labels
     labels = {
-        "daily": ("Bugungi", "Bugungi"),
-        "weekly": ("Haftalik", "Haftalik"),
-        "monthly": ("Oylik", "Oylik"),
-        "yearly": ("Yillik", "Yillik"),
+        "daily": "Bugungi",
+        "weekly": "Haftalik",
+        "monthly": "Oylik",
+        "yearly": "Yillik",
     }
-    prefix, _ = labels.get(period, ("", ""))
+    prefix = labels.get(period, "")
 
     lines = [
         f"📊 <b>{title}</b>",
@@ -283,7 +272,6 @@ async def cmd_profit_report(message: Message):
 
 @router.message(Command("menu"))
 async def cmd_menu(message: Message):
-    """Telegram Menu tugmasi yoki /menu — hisobotlar pastki menyusini chiqaradi."""
     site_login, language = await _resolve_login(message)
     if not site_login:
         await message.answer(t(language, "profit_not_linked"))
@@ -449,11 +437,6 @@ async def on_warehouse(message: Message):
     await message.answer(text, reply_markup=reports_keyboard())
 
 
-# =========================================================
-# QARZLAR — backend: /api/bot/debts va /api/bot/customer-debts
-# =========================================================
-
-
 @router.message(F.text == "💸 Jami qarzimiz")
 @router.message(Command("jamiqarz"))
 async def on_total_debt_ours(message: Message):
@@ -500,7 +483,8 @@ async def on_total_debt_ours(message: Message):
             f"{i}. <b>{name}</b>\n"
             + (f"   📞 {phone}\n" if phone else "")
             + f"   🗂 {cat_str}\n"
-            + f"   💰 Jami: {_fmt(cost)} · To‘langan: {_fmt(paid)}\n"
+            + f"   💰 Jami: {_fmt(cost)}"
+            + f"   💰 To‘langan: {_fmt(paid)}\n"
             + f"   📉 Qarz: <b>{_fmt(debt)} so'm</b>"
         )
         lines.append(block)

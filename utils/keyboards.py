@@ -25,9 +25,6 @@ def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
 
 
 def reports_keyboard() -> ReplyKeyboardMarkup:
-    """Hisobotlar pastki menyusi.
-    Ochish/yopish Telegramning o'z Menu (ko'k) tugmasi orqali amalga oshiriladi.
-    """
     builder = ReplyKeyboardBuilder()
     builder.row(
         KeyboardButton(text="📊 Oylik hisobot"),
