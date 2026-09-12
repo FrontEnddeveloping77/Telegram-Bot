@@ -16,6 +16,8 @@ class Config:
     )
     product_price: int = int(os.getenv("PRODUCT_PRICE", "0"))
     website_url: str = os.getenv("WEBSITE_URL", "")
+    api_url: str = os.getenv("API_URL", "")
+    apk_url: str = os.getenv("APK_URL", "")
 
     # Obuna necha daqiqa amal qiladi (test uchun 5, productionda masalan 43200 = 30 kun)
     subscription_duration_minutes: int = int(

@@ -14,7 +14,7 @@ from database.requests import (
     get_user_by_group_chat_id,
 )
 from locales.texts import t
-from utils.keyboards import pay_keyboard, reports_keyboard
+from utils.keyboards import pay_keyboard, reports_keyboard, clear_old_reply_keyboard
 from utils.credentials import decrypt_password
 
 router = Router(name="start")
@@ -38,6 +38,7 @@ async def send_welcome_offer(message: Message, name: str) -> None:
 async def send_active_subscription_info(message: Message, user) -> None:
     """Obuna faol bo'lganda login/parolni ko'rsatadi va hisobot tugmalarini chiqaradi."""
     password = decrypt_password(user.site_password_encrypted)
+    await clear_old_reply_keyboard(message)
     await message.answer(
         t(
             LANG,
@@ -68,6 +69,7 @@ async def cmd_start_in_group(message: Message):
     linked_user = await get_user_by_group_chat_id(message.chat.id)
 
     if linked_user:
+        await clear_old_reply_keyboard(message)
         await message.answer(
             "✅ Bu guruh allaqachon bog'langan.\n"
             "Saytdagi o'zgarishlar (mahsulot, rasxod va h.k.) shu guruhga avtomatik yuborib turiladi.\n"

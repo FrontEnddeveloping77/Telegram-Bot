@@ -56,8 +56,14 @@ async def renew_or_activate_subscription(
     (obuna qayta faollashtirilganda) ESKI login va ESKI parol o'zgarmasdan qaytariladi —
     chunki veb-saytda shu login/parol orqali saqlangan ma'lumotlar bog'liq bo'ladi.
 
+    Muhim: mavjud site_login hech qachon o'zgartirilmaydi / o'chirilmaydi.
+
     Qaytaradi: (login, shifrlangan_parol)
     """
+    import logging
+
+    logger = logging.getLogger(__name__)
+
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=config.subscription_duration_minutes)
 
@@ -69,10 +75,22 @@ async def renew_or_activate_subscription(
         if not user:
             raise ValueError("Foydalanuvchi topilmadi")
 
+        # Faqat birinchi marta login/parol beriladi — keyingi to'lovlarda o'zgarmaydi
         if user.site_login is None:
             user.site_login = new_login
             user.site_password_encrypted = new_password_encrypted
             user.site_password_hash = new_password_hash
+            logger.info(
+                "Yangi login yaratildi: telegram_id=%s login=%s",
+                telegram_id,
+                new_login,
+            )
+        else:
+            logger.info(
+                "Mavjud login saqlanib qoldi: telegram_id=%s login=%s",
+                telegram_id,
+                user.site_login,
+            )
 
         user.is_paid = True
         user.payment_method = payment_method
@@ -81,6 +99,21 @@ async def renew_or_activate_subscription(
         user.expires_at = expires_at
 
         await session.commit()
+        await session.refresh(user)
+
+        if not user.site_login or not user.site_password_hash:
+            logger.error(
+                "CRITICAL: commit dan keyin login/parol yo'q! telegram_id=%s",
+                telegram_id,
+            )
+            raise RuntimeError("Login/parol bazaga yozilmadi")
+
+        logger.info(
+            "Obuna faollashtirildi: telegram_id=%s login=%s expires=%s",
+            telegram_id,
+            user.site_login,
+            expires_at.isoformat(),
+        )
         return user.site_login, user.site_password_encrypted
 
 
