@@ -7,7 +7,6 @@ from aiogram.types import (
 )
 from aiogram.utils.keyboard import InlineKeyboardBuilder, ReplyKeyboardBuilder
 from locales.texts import t
-from config import config
 
 LANG = "uz"
 
@@ -15,6 +14,20 @@ LANG = "uz"
 def pay_keyboard() -> InlineKeyboardMarkup:
     builder = InlineKeyboardBuilder()
     builder.button(text=t(LANG, "btn_pay"), callback_data="pay:start")
+    return builder.as_markup()
+
+
+def pricing_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(
+        text="💰 Sotilgan tovar foydasidan pul to'lash",
+        callback_data="pricing:profit",
+    )
+    builder.button(
+        text="📦 Kiritilgan tovar soniga pul to'lash",
+        callback_data="pricing:products",
+    )
+    builder.adjust(1)
     return builder.as_markup()
 
 
@@ -26,7 +39,7 @@ def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def reports_keyboard() -> InlineKeyboardMarkup:
+def reports_keyboard(include_payment: bool = False) -> InlineKeyboardMarkup:
     """Guruh va shaxsiy chatlarda bir xilda ishlashi uchun inline (xabar ostidagi)
     tugmalar ishlatiladi — ReplyKeyboardMarkup'dan farqli o'laroq, bu klaviatura
     Telegramning "ochish/yopish" tugmasiga bog'liq emas va Android/iOS/Desktop'da
@@ -37,9 +50,6 @@ def reports_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="📈 Yillik hisobot", callback_data="rep:yearly"),
     )
     builder.row(
-        InlineKeyboardButton(
-            text="📦 Do'kondagi tovarlar", callback_data="rep:products"
-        ),
         InlineKeyboardButton(text="🏆 Top kategoriya", callback_data="rep:top"),
     )
     builder.row(
@@ -53,32 +63,12 @@ def reports_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="💸 Jami qarzimiz", callback_data="rep:debt_ours"),
         InlineKeyboardButton(text="👥 Bizga qarzdorlar", callback_data="rep:debtors"),
     )
-    # Sayt va APK havolalari yonma-yon
-    if config.website_url and config.apk_url:
+    if include_payment:
         builder.row(
-            InlineKeyboardButton(text="🌐 Veb-sayt", url=config.website_url),
-            InlineKeyboardButton(text="📱 APK faylini yuklab olish", url=config.apk_url),
+            InlineKeyboardButton(
+                text=t(LANG, "btn_pay"), callback_data="pay:start"
+            )
         )
-    elif config.website_url:
-        builder.row(InlineKeyboardButton(text="🌐 Veb-sayt", url=config.website_url))
-    elif config.apk_url:
-        builder.row(InlineKeyboardButton(text="📱 APK faylini yuklab olish", url=config.apk_url))
-
-    return builder.as_markup()
-
-
-def app_links_keyboard() -> InlineKeyboardMarkup:
-    """Har bir notification uchun sayt va APK havolalarini yonma-yon chiqaradi."""
-    builder = InlineKeyboardBuilder()
-    if config.website_url and config.apk_url:
-        builder.row(
-            InlineKeyboardButton(text="🌐 Veb-sayt", url=config.website_url),
-            InlineKeyboardButton(text="📱 APK faylini yuklab olish", url=config.apk_url),
-        )
-    elif config.website_url:
-        builder.row(InlineKeyboardButton(text="🌐 Veb-sayt", url=config.website_url))
-    elif config.apk_url:
-        builder.row(InlineKeyboardButton(text="📱 APK faylini yuklab olish", url=config.apk_url))
     return builder.as_markup()
 
 

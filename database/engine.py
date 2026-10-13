@@ -17,6 +17,24 @@ async def init_db() -> None:
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS linked_group_chat_id BIGINT"
         )
         await conn.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS pricing_model VARCHAR(32)"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS product_count INTEGER"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_reminder_at TIMESTAMPTZ"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS deletion_warning_count INTEGER NOT NULL DEFAULT 0"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_deletion_warning_at TIMESTAMPTZ"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE payment_requests ADD COLUMN IF NOT EXISTS expected_amount INTEGER"
+        )
+        await conn.exec_driver_sql(
             "CREATE INDEX IF NOT EXISTS idx_users_linked_group_chat_id "
             "ON users(linked_group_chat_id)"
         )
@@ -35,6 +53,15 @@ async def init_db() -> None:
         )
         await conn.exec_driver_sql(
             "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS photo_url TEXT"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS product_id VARCHAR(64)"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS product_category VARCHAR(128)"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE notifications ADD COLUMN IF NOT EXISTS delivered_chat_ids TEXT NOT NULL DEFAULT '[]'"
         )
         await conn.exec_driver_sql(
             """CREATE TABLE IF NOT EXISTS linked_groups (

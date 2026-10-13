@@ -20,6 +20,15 @@ class User(Base):
     language_selected: Mapped[bool] = mapped_column(Boolean, default=False)
 
     is_paid: Mapped[bool] = mapped_column(Boolean, default=False)
+    pricing_model: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    product_count: Mapped[int | None] = mapped_column(nullable=True)
+    last_reminder_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    deletion_warning_count: Mapped[int] = mapped_column(default=0)
+    last_deletion_warning_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     payment_method: Mapped[str] = mapped_column(
         String(20), nullable=True
     )  # click | payme
@@ -74,6 +83,7 @@ class PaymentRequest(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
     receipt_file_id: Mapped[str] = mapped_column(String(255))
+    expected_amount: Mapped[int | None] = mapped_column(nullable=True)
 
     status: Mapped[str] = mapped_column(String(20), default="pending")
 
@@ -96,6 +106,8 @@ class Notification(Base):
     Veb-sayt tomonidan yozib qo'yiladigan bildirishnomalar (masalan: 'mahsulot qo'shildi').
     Bot bu jadvalni davriy tekshirib, tegishli guruhga yuboradi.
     photo_url: data:image/... base64 yoki https URL (ixtiyoriy)
+
+    QR-savdodan keladigan mahsulot ma'lumoti: product_id va product_category.
     """
 
     __tablename__ = "notifications"
@@ -105,6 +117,11 @@ class Notification(Base):
     message: Mapped[str] = mapped_column(Text)
     is_sent: Mapped[bool] = mapped_column(Boolean, default=False)
     photo_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    product_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    product_category: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    delivered_chat_ids: Mapped[str] = mapped_column(
+        Text, nullable=False, default="[]", server_default="[]"
+    )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()
     )

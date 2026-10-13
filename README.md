@@ -27,11 +27,14 @@ Birinchi ishga tushirishda kerakli jadvallar avtomatik yaratiladi.
 
 ## Hozirgi holat
 
-- ✅ /start → til tanlash (uz/ru/en) → shu tilda muloqot
-- ✅ To'lov taklifi va to'lov usulini tanlash (Click/Payme/Boshqa)
-- ✅ Har bir foydalanuvchi uchun **unikal, bazada takrorlanmaydigan** login va kuchli parol generatsiyasi (parol bazada faqat bcrypt xesh ko'rinishida saqlanadi)
-- ✅ To'lovdan keyin veb-sayt linki + login/parol yuboriladi
-- ⚠️ **To'lov hozircha `mock` (demo) rejimda** — haqiqiy pul o'tkazilmaydi, faqat oqim sinaladi. `.env` da `PAYMENT_MODE=mock`
+- ✅ `/start` do'kondagi turli tovarlar sonini so'raydi va ikkita tarifni taklif qiladi.
+- ✅ Foyda tarifi: oylik sof foydaning 15%; tovar tarifi: har 100 xil ID uchun 50 000 so'm.
+- ✅ Tarif tanlanganda bir marta 3 kunlik sinov va shaxsiy login/parol beriladi.
+- ✅ To'lov summasi tanlangan tarif bo'yicha hisoblanadi; foyda tarifi hisobot API'sidagi oylik sof foydadan olinadi.
+- ✅ Muddati tugagan akkauntga har kuni Toshkent vaqti bilan soat 10:00 dan keyin eslatma yuboriladi. Ikki kalendar oydan keyin uch kun ketma-ket ogohlantirish berilib, so'ng akkaunt va bot bazasidagi bog'liq ma'lumotlar o'chiriladi.
+- ✅ Sotuv notification'i har bir bog'langan guruhga alohida qayd qilinadi, qayta urinishda avval olgan guruhga takror yuborilmaydi.
+- ✅ Bot xabarlarida sayt yoki APK havolasi chiqarilmaydi. `WEBSITE_URL` faqat hisobot API manzilini aniqlash uchun ishlatiladi.
+- ⚠️ Karta cheklari admin tomonidan qo'lda ko'rib chiqiladi; Click/Payme webhook integratsiyasi alohida sozlanmagan.
 
 ## Click/Payme ni real ulash
 

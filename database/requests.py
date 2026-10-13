@@ -1,6 +1,6 @@
 import json
 from datetime import datetime, timedelta, timezone
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 from config import config
 from database.engine import async_session
 from database.models import User, Notification, PaymentRequest, LinkedGroup
@@ -40,6 +40,103 @@ async def get_user(telegram_id: int) -> User | None:
             select(User).where(User.telegram_id == telegram_id)
         )
         return result.scalar_one_or_none()
+
+
+async def select_pricing_model(telegram_id: int, pricing_model: str) -> None:
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.pricing_model = pricing_model
+            await session.commit()
+
+
+async def update_product_count(telegram_id: int, product_count: int) -> None:
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.product_count = product_count
+            await session.commit()
+
+
+async def activate_trial(
+    telegram_id: int,
+    new_login: str,
+    new_password_encrypted: str,
+    new_password_hash: str,
+) -> User | None:
+    now = datetime.now(timezone.utc)
+    async with async_session() as session:
+        result = await session.execute(
+            update(User)
+            .where(User.telegram_id == telegram_id, User.site_login.is_(None))
+            .values(
+                site_login=new_login,
+                site_password_encrypted=new_password_encrypted,
+                site_password_hash=new_password_hash,
+                is_paid=True,
+                payment_method="trial",
+                paid_at=now,
+                expires_at=now + timedelta(days=3),
+                last_reminder_at=None,
+                deletion_warning_count=0,
+                last_deletion_warning_at=None,
+            )
+        )
+        if result.rowcount == 0:
+            return None
+        await session.commit()
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        return result.scalar_one_or_none()
+
+
+async def save_reminder_state(
+    telegram_id: int,
+    sent_at: datetime,
+    deletion_warning_count: int | None = None,
+    last_deletion_warning_at: datetime | None = None,
+) -> None:
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.last_reminder_at = sent_at
+            if deletion_warning_count is not None:
+                user.deletion_warning_count = deletion_warning_count
+                user.last_deletion_warning_at = last_deletion_warning_at
+            await session.commit()
+
+
+async def delete_expired_user(telegram_id: int) -> None:
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if not user:
+            return
+
+        if user.site_login:
+            await session.execute(
+                delete(Notification).where(Notification.site_login == user.site_login)
+            )
+        await session.execute(
+            delete(LinkedGroup).where(LinkedGroup.user_id == user.id)
+        )
+        await session.execute(
+            delete(PaymentRequest).where(PaymentRequest.telegram_id == telegram_id)
+        )
+        await session.delete(user)
+        await session.commit()
 
 
 async def renew_or_activate_subscription(
@@ -97,6 +194,9 @@ async def renew_or_activate_subscription(
         user.payment_id = payment_id
         user.paid_at = now
         user.expires_at = expires_at
+        user.last_reminder_at = None
+        user.deletion_warning_count = 0
+        user.last_deletion_warning_at = None
 
         await session.commit()
         await session.refresh(user)
@@ -126,11 +226,11 @@ async def login_exists(site_login: str) -> bool:
 
 
 async def get_users_with_expired_subscription() -> list[User]:
-    """is_paid=True bo'lgan, lekin muddati o'tib ketgan userlarni qaytaradi (bildirishnoma yuborish uchun)."""
+    """Muddati o'tgan obunalarni eslatma va o'chirish uchun qaytaradi."""
     now = datetime.now(timezone.utc)
     async with async_session() as session:
         result = await session.execute(
-            select(User).where(User.is_paid == True, User.expires_at <= now)  # noqa: E712
+            select(User).where(User.expires_at.is_not(None), User.expires_at <= now)
         )
         return list(result.scalars().all())
 
@@ -238,16 +338,39 @@ async def mark_notification_sent(notification_id: int) -> None:
             await session.commit()
 
 
+async def mark_notification_chat_sent(
+    notification_id: int, chat_id: int, expected_chat_ids: list[int]
+) -> None:
+    async with async_session() as session:
+        result = await session.execute(
+            select(Notification).where(Notification.id == notification_id)
+        )
+        notification = result.scalar_one_or_none()
+        if not notification:
+            return
+
+        try:
+            delivered = {int(value) for value in json.loads(notification.delivered_chat_ids or "[]")}
+        except (TypeError, ValueError):
+            delivered = set()
+        delivered.add(int(chat_id))
+        notification.delivered_chat_ids = json.dumps(sorted(delivered))
+        if set(expected_chat_ids).issubset(delivered):
+            notification.is_sent = True
+        await session.commit()
+
+
 # ===================== To'lov cheklari (karta orqali qo'lda to'lov) =====================
 
 
 async def create_payment_request(
-    telegram_id: int, receipt_file_id: str
+    telegram_id: int, receipt_file_id: str, expected_amount: int | None = None
 ) -> PaymentRequest:
     async with async_session() as session:
         payment_request = PaymentRequest(
             telegram_id=telegram_id,
             receipt_file_id=receipt_file_id,
+            expected_amount=expected_amount,
             status="pending",
         )
         session.add(payment_request)

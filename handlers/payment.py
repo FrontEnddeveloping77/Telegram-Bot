@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime, timezone
 
 from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
@@ -39,8 +40,28 @@ class AdminStates(StatesGroup):
     waiting_for_reject_reason = State()
 
 
-def _formatted_price() -> str:
-    return f"{config.product_price:,}".replace(",", " ")
+def _formatted_price(amount: int | None = None) -> str:
+    return f"{amount if amount is not None else config.product_price:,}".replace(",", " ")
+
+
+async def _price_for_user(user) -> int | None:
+    if user.pricing_model == "products":
+        if not user.product_count or user.product_count < 1:
+            return None
+        return ((user.product_count + 99) // 100) * 50_000
+
+    if user.pricing_model == "profit":
+        if not user.site_login:
+            return None
+        from handlers.reports import _fetch_full_report
+
+        report = await _fetch_full_report(user.site_login, "monthly")
+        if not report:
+            return None
+        profit = float(report.get("net_profit", report.get("profit", 0)) or 0)
+        return max(0, round(profit * 0.15))
+
+    return config.product_price
 
 
 def _is_admin(telegram_id: int) -> bool:
@@ -55,17 +76,32 @@ async def on_pay_start(callback: CallbackQuery, state: FSMContext):
     user = await get_user(callback.from_user.id)
     language = user.language if user else "uz"
 
-    if user and user.is_paid:
+    if (
+        user
+        and user.is_paid
+        and user.payment_method != "trial"
+        and (user.expires_at is None or user.expires_at > datetime.now(timezone.utc))
+    ):
         password = decrypt_password(user.site_password_encrypted)
         await callback.message.answer(
             t(
                 language,
                 "already_paid",
-                website=config.website_url,
                 login=user.site_login,
                 password=password,
             )
         )
+        await callback.answer()
+        return
+
+    if not user:
+        await callback.message.answer(t(language, "pricing_amount_unavailable"))
+        await callback.answer()
+        return
+
+    expected_amount = await _price_for_user(user)
+    if expected_amount is None or expected_amount < 1:
+        await callback.message.answer(t(language, "pricing_amount_unavailable"))
         await callback.answer()
         return
 
@@ -75,10 +111,11 @@ async def on_pay_start(callback: CallbackQuery, state: FSMContext):
             "card_payment_instructions",
             card_number=config.card_number,
             card_holder=config.card_holder_name,
-            price=_formatted_price(),
+            price=_formatted_price(expected_amount),
         )
     )
     await state.set_state(PaymentStates.waiting_for_receipt)
+    await state.update_data(expected_amount=expected_amount)
     await callback.answer()
 
 
@@ -86,11 +123,14 @@ async def on_pay_start(callback: CallbackQuery, state: FSMContext):
 async def on_receipt_photo(message: Message, state: FSMContext, bot: Bot):
     user = await get_user(message.from_user.id)
     language = user.language if user else "uz"
+    state_data = await state.get_data()
+    expected_amount = state_data.get("expected_amount")
 
     receipt_file_id = message.photo[-1].file_id
     payment_request = await create_payment_request(
         telegram_id=message.from_user.id,
         receipt_file_id=receipt_file_id,
+        expected_amount=expected_amount,
     )
 
     await state.clear()
@@ -108,7 +148,7 @@ async def on_receipt_photo(message: Message, state: FSMContext, bot: Bot):
         full_name=message.from_user.full_name,
         username=message.from_user.username or "-",
         telegram_id=message.from_user.id,
-        price=_formatted_price(),
+        price=_formatted_price(expected_amount),
     )
 
     admin_message_ids: dict[int, int] = {}
@@ -156,7 +196,7 @@ async def _sync_admin_messages(
         full_name=(user.full_name if user and user.full_name else "-"),
         username=(user.username if user and user.username else "-"),
         telegram_id=payment_request.telegram_id,
-        price=_formatted_price(),
+        price=_formatted_price(payment_request.expected_amount),
     )
 
     for admin_id_str, message_id in admin_message_ids.items():
@@ -219,7 +259,6 @@ async def on_admin_approve(callback: CallbackQuery, bot: Bot):
             t(
                 language,
                 "payment_success",
-                website=config.website_url,
                 login=login,
                 password=password,
             ),

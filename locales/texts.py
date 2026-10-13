@@ -3,10 +3,39 @@ TEXTS = {
         "choose_language": "Tilni tanlang / Choose language / Выберите язык:",
         "language_set": "✅ Til o'zbekcha qilib o'rnatildi.",
         "welcome_offer": (
-            "Assalomu alaykum, {name}!\n\n"
-            "Xizmatdan foydalanish uchun to'lovni amalga oshiring. "
-            "Narx: {price} so'm/oyiga.\n\n"
-            "Pastdagi tugmani bosing 👇"
+            "Assalomu alaykum, {name}! 👋\n\n"
+            "Do'koningizda nechta xil tovar bor? Sizga mos to'lov usulini tanlang 👇"
+        ),
+        "pricing_profit": (
+            "💸 <b>FOYDADAN TO'LOV</b> 💸\n\n"
+            "🛍 Sotilgan tovarlardan olgan oylik sof foydangizning <b>15% ini</b> bizga to'laysiz."
+        ),
+        "pricing_products": (
+            "📦 <b>TOVAR SONI BO'YICHA TO'LOV</b> 📦\n\n"
+            "🧾 Har <b>100 xil tovar (100 ta ID)</b> uchun <b>50 000 so'm</b>."
+        ),
+        "trial_credentials": (
+            "🔐 <b>Akkaunt ma'lumotlaringiz</b>\n"
+            "Login: <code>{login}</code>\n"
+            "Parol: <code>{password}</code>\n\n"
+            "⏳ Bepul foydalanish muddati: <b>3 kun</b>. Ma'lumotlarni saqlab qo'ying."
+        ),
+        "existing_credentials": (
+            "🔐 <b>Akkaunt ma'lumotlaringiz</b>\n"
+            "Login: <code>{login}</code>\n"
+            "Parol: <code>{password}</code>\n\n"
+            "Bepul sinov muddati faqat bir marta beriladi."
+        ),
+        "trial_expired": (
+            "⏰ Bepul sinov muddati avval ishlatilgan va tugagan.\n"
+            "Akkauntingizni faollashtirish uchun to'lov qiling."
+        ),
+        "ask_product_count": "Do'koningizda nechta xil tovar (ID) bor? Faqat sonini yuboring.",
+        "product_count_received": "Rahmat! Tovar soni saqlandi. Endi yuqoridagi tariflardan birini tanlang.",
+        "invalid_product_count": "Iltimos, tovarlar sonini musbat butun son qilib yuboring.",
+        "product_count_saved": (
+            "📦 {count} xil tovar uchun hisob: <b>{price} so'm</b>\n"
+            "(Har 100 ta ID uchun 50 000 so'm; 100 dan kam bo'lsa ham 50 000 so'm.)"
         ),
         "btn_pay": "💳 To'lov qilish",
         "card_payment_instructions": (
@@ -49,7 +78,6 @@ TEXTS = {
         "processing_payment": "⏳ To'lov tekshirilmoqda, biroz kuting...",
         "payment_success": (
             "✅ To'lovingiz muvaffaqiyatli qabul qilindi!\n\n"
-            "🌐 Veb-sayt: {website}\n\n"
             "🔑 Sizning shaxsiy kirish ma'lumotlaringiz:\n"
             "Login: <code>{login}</code>\n"
             "Parol: <code>{password}</code>\n\n"
@@ -58,19 +86,29 @@ TEXTS = {
         "payment_success_renewed": (
             "✅ To'lovingiz muvaffaqiyatli qabul qilindi!\n\n"
             "🔓 Login va parolingiz qayta faollashtirildi, endi saytga kirishingiz mumkin.\n"
-            "🌐 Veb-sayt: {website}\n"
             "Login: <code>{login}</code>"
         ),
         "already_paid": (
-            "Siz allaqachon to'lovni amalga oshirgansiz.\n\n"
-            "🌐 Veb-sayt: {website}\n"
+            "✅ Akkauntingiz faol. Kirish ma'lumotlaringiz:\n\n"
             "🔑 Login: <code>{login}</code>\n"
             "🔑 Parol: <code>{password}</code>"
         ),
         "subscription_expired": (
-            "⏰ Sizning to'lov muddatingiz tugadi.\n\n"
-            "Login va parolingiz vaqtincha ishlamay qoladi.\n"
-            "Agar yana to'lov amalga oshirsangiz, login va parolingiz qayta ishlashni boshlaydi."
+            "⏰ Bepul/oldingi foydalanish muddati tugadi. Akkauntingiz hozircha saqlanadi.\n"
+            "To'lov amalga oshirilmasa, muddati tugaganidan 2 oy o'tgach akkaunt o'chiriladi."
+        ),
+        "payment_reminder": (
+            "⏰ To'lov muddati o'tgan. Akkauntingiz va ma'lumotlaringiz hozircha saqlanadi.\n"
+            "Akkaunt muddati tugaganidan 2 oy o'tib, 3 kunlik ogohlantirishlardan so'ng o'chiriladi."
+        ),
+        "pricing_amount_unavailable": (
+            "To'lov summasini hozir hisoblab bo'lmadi. Tovarlar sonini kiriting yoki birozdan keyin qayta urinib ko'ring."
+        ),
+        "deletion_warning": (
+            "⚠️ <b>DIQQAT: AKKAUNT O'CHIRILISHI MUMKIN</b> ⚠️\n\n"
+            "To'lov muddati tugaganiga 2 oy bo'ldi. Akkauntingiz va undagi ma'lumotlar "
+            "3 kun ketma-ket ogohlantirishdan keyin o'chiriladi.\n"
+            "❗ Akkauntni saqlab qolish uchun to'lovni amalga oshiring."
         ),
         "tutorial_caption": (
             "🎬 Botdan qanday foydalanish bo'yicha qisqacha video 👆\n\n"
@@ -146,7 +184,6 @@ TEXTS = {
         "processing_payment": "⏳ Оплата проверяется, немного подождите...",
         "payment_success": (
             "✅ Ваша оплата успешно принята!\n\n"
-            "🌐 Веб-сайт: {website}\n\n"
             "🔑 Ваши личные данные для входа:\n"
             "Логин: <code>{login}</code>\n"
             "Пароль: <code>{password}</code>\n\n"
@@ -155,12 +192,10 @@ TEXTS = {
         "payment_success_renewed": (
             "✅ Ваша оплата успешно принята!\n\n"
             "🔓 Логин и пароль снова активированы, вы можете войти на сайт.\n"
-            "🌐 Веб-сайт: {website}\n"
             "Логин: <code>{login}</code>"
         ),
         "already_paid": (
-            "Вы уже совершили оплату.\n\n"
-            "🌐 Веб-сайт: {website}\n"
+            "✅ Ваш аккаунт активен. Данные для входа:\n\n"
             "🔑 Логин: <code>{login}</code>\n"
             "🔑 Пароль: <code>{password}</code>"
         ),
@@ -169,6 +204,16 @@ TEXTS = {
             "Логин и пароль временно перестанут работать.\n"
             "Если вы снова совершите оплату, логин и пароль снова начнут работать."
         ),
+        "payment_reminder": (
+            "⏰ Срок оплаты истёк. Аккаунт и данные пока сохранены.\n"
+            "Через 2 месяца аккаунт будет удалён после трёх ежедневных предупреждений."
+        ),
+        "deletion_warning": (
+            "⚠️ <b>АККАУНТ МОЖЕТ БЫТЬ УДАЛЁН</b> ⚠️\n\n"
+            "После трёх ежедневных предупреждений аккаунт и его данные будут удалены.\n"
+            "❗ Оплатите, чтобы сохранить аккаунт."
+        ),
+        "pricing_amount_unavailable": "Не удалось рассчитать сумму. Проверьте количество товаров или попробуйте позже.",
         "tutorial_caption": (
             "🎬 Короткое видео о том, как пользоваться ботом 👆\n\n"
             "✅ Полная инструкция по использованию бота показана в этом видео\n"
@@ -243,7 +288,6 @@ TEXTS = {
         "processing_payment": "⏳ Payment is being verified, please wait...",
         "payment_success": (
             "✅ Your payment was received successfully!\n\n"
-            "🌐 Website: {website}\n\n"
             "🔑 Your personal login details:\n"
             "Login: <code>{login}</code>\n"
             "Password: <code>{password}</code>\n\n"
@@ -252,12 +296,10 @@ TEXTS = {
         "payment_success_renewed": (
             "✅ Payment received successfully!\n\n"
             "🔓 Your login and password are reactivated — you can log in to the website again.\n"
-            "🌐 Website: {website}\n"
             "Login: <code>{login}</code>"
         ),
         "already_paid": (
-            "You have already completed the payment.\n\n"
-            "🌐 Website: {website}\n"
+            "✅ Your account is active. Login details:\n\n"
             "🔑 Login: <code>{login}</code>\n"
             "🔑 Password: <code>{password}</code>"
         ),
@@ -266,6 +308,16 @@ TEXTS = {
             "Your login and password will stop working temporarily.\n"
             "If you make the payment again, your login and password will start working again."
         ),
+        "payment_reminder": (
+            "⏰ Your payment period has expired. Your account and data are still retained.\n"
+            "The account will be deleted after three daily warnings, two months after expiry."
+        ),
+        "deletion_warning": (
+            "⚠️ <b>ACCOUNT AT RISK OF DELETION</b> ⚠️\n\n"
+            "Your account and its data will be deleted after three daily warnings.\n"
+            "❗ Make a payment to keep your account."
+        ),
+        "pricing_amount_unavailable": "Couldn't calculate the amount. Check the product count or try again later.",
         "tutorial_caption": (
             "🎬 A short video on how to use the bot 👆\n\n"
             "✅ A complete guide to using the bot is shown in this video\n"

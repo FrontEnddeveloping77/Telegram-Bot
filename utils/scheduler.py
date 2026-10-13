@@ -1,39 +1,130 @@
 import asyncio
+import calendar
 import logging
+from datetime import datetime, timedelta, timezone
 
 from aiogram import Bot
 
-from database.requests import get_users_with_expired_subscription, expire_subscription
+from database.requests import (
+    delete_expired_user,
+    expire_subscription,
+    get_users_with_expired_subscription,
+    save_reminder_state,
+)
 from locales.texts import t
 from utils.keyboards import pay_keyboard
 
 logger = logging.getLogger(__name__)
 
-CHECK_INTERVAL_SECONDS = 15  # obunalarni har necha soniyada 
+CHECK_INTERVAL_SECONDS = 60
+REMINDER_HOUR = 10
+LOCAL_TIMEZONE = timezone(timedelta(hours=5), "Asia/Tashkent")
+FINAL_WARNING_DAYS = 3
+
+
+def _as_utc(value: datetime) -> datetime:
+    return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
+
+
+def _add_two_months(value: datetime) -> datetime:
+    month_index = value.month - 1 + 2
+    year = value.year + month_index // 12
+    month = month_index % 12 + 1
+    day = min(value.day, calendar.monthrange(year, month)[1])
+    return value.replace(year=year, month=month, day=day)
 
 
 async def subscription_expiry_watcher(bot: Bot) -> None:
-    """
-    Doimiy ishlaydigan fon vazifa: muddati tugagan obunalarni topadi,
-    userga xabar yuboradi (to'lov tugmasi bilan) va bazada is_paid=False qilib qo'yadi.
-    """
+    """Har kuni bir vaqtda to'lovni eslatadi, so'ng muddati o'tgan hisobni o'chiradi."""
     while True:
-        try:
-            expired_users = await get_users_with_expired_subscription()
-            for user in expired_users:
-                try:
-                    await bot.send_message(
-                        user.telegram_id,
-                        t(user.language, "subscription_expired"),
-                        reply_markup=pay_keyboard(),
+        now = datetime.now(timezone.utc)
+        local_now = now.astimezone(LOCAL_TIMEZONE)
+
+        if local_now.hour >= REMINDER_HOUR:
+            try:
+                expired_users = await get_users_with_expired_subscription()
+                for user in expired_users:
+                    expires_at = _as_utc(user.expires_at)
+                    last_reminder = (
+                        _as_utc(user.last_reminder_at)
+                        if user.last_reminder_at
+                        else None
                     )
-                except Exception:
-                    logger.exception(
-                        "Foydalanuvchiga xabar yuborib bo'lmadi: %s", user.telegram_id
+                    if last_reminder and last_reminder.astimezone(LOCAL_TIMEZONE).date() >= local_now.date():
+                        continue
+
+                    if user.is_paid:
+                        await expire_subscription(user.telegram_id)
+
+                    deletion_at = _add_two_months(expires_at)
+                    last_warning = (
+                        _as_utc(user.last_deletion_warning_at)
+                        if user.last_deletion_warning_at
+                        else None
                     )
-                finally:
-                    await expire_subscription(user.telegram_id)
-        except Exception:
-            logger.exception("Obunalarni tekshirishda xatolik")
+                    last_warning_date = (
+                        last_warning.astimezone(LOCAL_TIMEZONE).date()
+                        if last_warning
+                        else None
+                    )
+
+                    if (
+                        now >= deletion_at
+                        and user.deletion_warning_count >= FINAL_WARNING_DAYS
+                        and last_warning_date is not None
+                        and last_warning_date < local_now.date()
+                    ):
+                        await delete_expired_user(user.telegram_id)
+                        logger.info("Muddati o'tgan akkaunt o'chirildi: %s", user.telegram_id)
+                        continue
+
+                    warning_window_start = deletion_at - timedelta(days=FINAL_WARNING_DAYS)
+                    if now >= warning_window_start:
+                        previous_count = user.deletion_warning_count
+                        if last_warning_date != local_now.date() - timedelta(days=1):
+                            previous_count = 0
+                        warning_count = previous_count + 1
+                        message = t(user.language or "uz", "deletion_warning")
+                        try:
+                            await bot.send_message(
+                                user.telegram_id,
+                                message,
+                                reply_markup=pay_keyboard(),
+                            )
+                        except Exception:
+                            logger.exception(
+                                "Yakuniy ogohlantirish yuborilmadi: %s",
+                                user.telegram_id,
+                            )
+                            await save_reminder_state(user.telegram_id, now)
+                            continue
+                        await save_reminder_state(
+                            user.telegram_id,
+                            now,
+                            deletion_warning_count=warning_count,
+                            last_deletion_warning_at=now,
+                        )
+                    else:
+                        message_key = (
+                            "subscription_expired"
+                            if expires_at.astimezone(LOCAL_TIMEZONE).date() == local_now.date()
+                            else "payment_reminder"
+                        )
+                        try:
+                            await bot.send_message(
+                                user.telegram_id,
+                                t(user.language or "uz", message_key),
+                                reply_markup=pay_keyboard(),
+                            )
+                        except Exception:
+                            logger.exception(
+                                "To'lov eslatmasi yuborilmadi: %s",
+                                user.telegram_id,
+                            )
+                            await save_reminder_state(user.telegram_id, now)
+                            continue
+                        await save_reminder_state(user.telegram_id, now)
+            except Exception:
+                logger.exception("Obuna eslatmalarini tekshirishda xatolik")
 
         await asyncio.sleep(CHECK_INTERVAL_SECONDS)

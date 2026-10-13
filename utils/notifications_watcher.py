@@ -1,14 +1,15 @@
 import asyncio
 import base64
+import json
 import logging
 
 from aiogram import Bot
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.types import BufferedInputFile
-from utils.keyboards import app_links_keyboard
 
 from database.requests import (
     get_pending_notifications,
-    mark_notification_sent,
+    mark_notification_chat_sent,
     get_user_by_login,
     get_linked_group_chat_ids,
 )
@@ -18,14 +19,70 @@ logger = logging.getLogger(__name__)
 CHECK_INTERVAL_SECONDS = 10
 
 
+def _normalize_meta_value(value):
+    if value is None:
+        return None
+    value = str(value).strip()
+    return value or None
+
+
+def _extract_product_meta(message: str | None, product_id: str | None, product_category: str | None):
+    payload = {}
+    text = str(message or "").strip()
+
+    if text:
+        try:
+            parsed = json.loads(text)
+            if isinstance(parsed, dict):
+                payload = parsed
+        except (TypeError, ValueError):
+            pass
+
+    product_id = _normalize_meta_value(product_id)
+    product_category = _normalize_meta_value(product_category)
+
+    if product_id is None:
+        product_id = (
+            payload.get("product_id")
+            or payload.get("productId")
+            or payload.get("productID")
+            or payload.get("id")
+            or payload.get("item_id")
+            or payload.get("itemId")
+        )
+    if product_category is None:
+        product_category = (
+            payload.get("product_category")
+            or payload.get("category")
+            or payload.get("productCategory")
+            or payload.get("type")
+        )
+
+    return {
+        "product_id": _normalize_meta_value(product_id),
+        "product_category": _normalize_meta_value(product_category),
+    }
+
+
 async def _send_notification(
     bot: Bot,
     chat_id: int,
     message: str,
     photo_url: str | None,
+    product_id: str | None = None,
+    product_category: str | None = None,
 ) -> None:
     text = str(message or "")
     photo_url = str(photo_url or "").strip()
+    meta = _extract_product_meta(text, product_id, product_category)
+
+    if meta["product_id"] or meta["product_category"]:
+        lines = [text.strip() if text.strip() else "🔔 Yangi bildirishnoma"]
+        if meta["product_id"]:
+            lines.append(f"📦 <b>Tovar ID:</b> {meta['product_id']}")
+        if meta["product_category"]:
+            lines.append(f"🏷 <b>Kategoriya:</b> {meta['product_category']}")
+        text = "\n".join(lines)
 
     # ==================================================
     # RASM BILAN YUBORISH
@@ -56,9 +113,8 @@ async def _send_notification(
                         photo=photo,
                         caption=caption,
                         parse_mode="HTML",
-                        reply_markup=app_links_keyboard(),
                     )
-                except Exception as url_err:
+                except TelegramBadRequest as url_err:
                     # http URL Telegram tomonidan ochilmasa — o'zimiz yuklab yuboramiz
                     if isinstance(photo, str) and photo.startswith("http"):
                         logger.warning(
@@ -84,7 +140,6 @@ async def _send_notification(
                             photo=photo_file,
                             caption=caption,
                             parse_mode="HTML",
-                            reply_markup=app_links_keyboard(),
                         )
                     else:
                         raise
@@ -97,12 +152,11 @@ async def _send_notification(
                             chat_id=chat_id,
                             text=remaining[i : i + 4096],
                             parse_mode="HTML",
-                            reply_markup=app_links_keyboard(),
                         )
 
                 return
 
-        except Exception as error:
+        except TelegramBadRequest as error:
             logger.exception(
                 "[NOTIFICATION] Rasm yuborilmadi. "
                 "Matn sifatida qayta yuboriladi. "
@@ -110,6 +164,13 @@ async def _send_notification(
                 chat_id,
                 error,
             )
+        except Exception:
+            logger.exception(
+                "[NOTIFICATION] Rasm yuborishda noaniq xatolik; "
+                "matnli nusxa yuborilmaydi: chat_id=%s",
+                chat_id,
+            )
+            raise
 
     # ==================================================
     # FAQAT MATN
@@ -123,7 +184,6 @@ async def _send_notification(
             chat_id=chat_id,
             text=text[i : i + 4096],
             parse_mode="HTML",
-            reply_markup=app_links_keyboard(),
         )
 
 
@@ -190,8 +250,19 @@ async def notifications_watcher(bot: Bot) -> None:
                 # ==================================================
 
                 any_sent = False
+                try:
+                    delivered_chat_ids = {
+                        int(value)
+                        for value in json.loads(
+                            getattr(notification, "delivered_chat_ids", "[]") or "[]"
+                        )
+                    }
+                except (TypeError, ValueError):
+                    delivered_chat_ids = set()
 
                 for chat_id in chat_ids:
+                    if int(chat_id) in delivered_chat_ids:
+                        continue
                     try:
                         await _send_notification(
                             bot=bot,
@@ -202,9 +273,21 @@ async def notifications_watcher(bot: Bot) -> None:
                                 "photo_url",
                                 None,
                             ),
+                            product_id=getattr(notification, "product_id", None),
+                            product_category=getattr(
+                                notification,
+                                "product_category",
+                                None,
+                            ),
                         )
 
                         any_sent = True
+                        await mark_notification_chat_sent(
+                            notification_id,
+                            int(chat_id),
+                            [int(value) for value in chat_ids],
+                        )
+                        delivered_chat_ids.add(int(chat_id))
 
                         logger.info(
                             "✅ NOTIFICATION YUBORILDI: " "id=%s chat_id=%s login=%s",
@@ -223,27 +306,12 @@ async def notifications_watcher(bot: Bot) -> None:
                             error,
                         )
 
-                # ==================================================
-                # MUVAFFAQIYATLI BO'LSA SENT QILISH
-                # ==================================================
-
                 if any_sent:
-                    try:
-                        await mark_notification_sent(notification_id)
-
-                        logger.info(
-                            "✅ Notification is_sent=true: id=%s",
-                            notification_id,
-                        )
-
-                    except Exception as error:
-                        logger.exception(
-                            "❌ is_sent=true qilishda xato: id=%s error=%s",
-                            notification_id,
-                            error,
-                        )
-
-                else:
+                    logger.info(
+                        "✅ Guruhlar kesimida yetkazish qayd etildi: id=%s",
+                        notification_id,
+                    )
+                elif not set(map(int, chat_ids)).issubset(delivered_chat_ids):
                     logger.warning(
                         "⚠️ Notification hech qaysi guruhga " "yuborilmadi: id=%s",
                         notification_id,
