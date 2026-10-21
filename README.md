@@ -27,10 +27,10 @@ Birinchi ishga tushirishda kerakli jadvallar avtomatik yaratiladi.
 
 ## Hozirgi holat
 
-- ✅ `/start` do'kondagi turli tovarlar sonini so'raydi va ikkita tarifni taklif qiladi.
-- ✅ Foyda tarifi: oylik sof foydaning 15%; tovar tarifi: har 100 xil ID uchun 50 000 so'm.
-- ✅ Tarif tanlanganda bir marta 3 kunlik sinov va shaxsiy login/parol beriladi.
-- ✅ To'lov summasi tanlangan tarif bo'yicha hisoblanadi; foyda tarifi hisobot API'sidagi oylik sof foydadan olinadi.
+- ✅ `/start` do'kondagi tovarlar soni (ID) va ulanadigan guruhlar soni bo'yicha qat'iy tariflarni taklif qiladi.
+- ✅ Tariflar: 1 000, 2 000, 3 000, 4 000, 5 000 tagacha ID; 1 ta, 2 ta va 3-5 ta guruh variantlari mavjud.
+- ✅ 5 000 tadan ko'p tovar yoki 5 tadan ko'p guruh uchun to'g'ridan-to'g'ri admin (@ABDULAZIZ_AVAZOV) ga murojaat qilinadi.
+- ✅ Guruh limiti bot tomonidan avtomatik nazorat qilinadi.
 - ✅ Muddati tugagan akkauntga har kuni Toshkent vaqti bilan soat 10:00 dan keyin eslatma yuboriladi. Ikki kalendar oydan keyin uch kun ketma-ket ogohlantirish berilib, so'ng akkaunt va bot bazasidagi bog'liq ma'lumotlar o'chiriladi.
 - ✅ Sotuv notification'i har bir bog'langan guruhga alohida qayd qilinadi, qayta urinishda avval olgan guruhga takror yuborilmaydi.
 - ✅ Bot xabarlarida sayt yoki APK havolasi chiqarilmaydi. `WEBSITE_URL` faqat hisobot API manzilini aniqlash uchun ishlatiladi.

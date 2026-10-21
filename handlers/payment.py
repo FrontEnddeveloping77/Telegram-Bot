@@ -45,23 +45,15 @@ def _formatted_price(amount: int | None = None) -> str:
 
 
 async def _price_for_user(user) -> int | None:
-    if user.pricing_model == "products":
-        if not user.product_count or user.product_count < 1:
-            return None
-        return ((user.product_count + 99) // 100) * 50_000
+    if user.tariff_price:
+        return user.tariff_price
+    if user.max_products and user.max_groups:
+        from utils.tariffs import calculate_tariff_price
 
-    if user.pricing_model == "profit":
-        if not user.site_login:
-            return None
-        from handlers.reports import _fetch_full_report
-
-        report = await _fetch_full_report(user.site_login, "monthly")
-        if not report:
-            return None
-        profit = float(report.get("net_profit", report.get("profit", 0)) or 0)
-        return max(0, round(profit * 0.15))
-
-    return config.product_price
+        return calculate_tariff_price(user.max_products, user.max_groups)
+    if config.product_price and config.product_price > 0:
+        return config.product_price
+    return None
 
 
 def _is_admin(telegram_id: int) -> bool:
@@ -76,9 +68,13 @@ async def on_pay_start(callback: CallbackQuery, state: FSMContext):
     user = await get_user(callback.from_user.id)
     language = user.language if user else "uz"
 
+    state_data = await state.get_data()
+    is_upgrade = state_data.get("is_upgrade", False)
+
     if (
         user
         and user.is_paid
+        and not is_upgrade
         and user.payment_method != "trial"
         and (user.expires_at is None or user.expires_at > datetime.now(timezone.utc))
     ):
@@ -94,14 +90,53 @@ async def on_pay_start(callback: CallbackQuery, state: FSMContext):
         await callback.answer()
         return
 
+    from utils.tariffs import format_price
+
+    if is_upgrade:
+        expected_amount = state_data.get("expected_amount")
+        upgrade_products = state_data.get("upgrade_products")
+        upgrade_groups = state_data.get("upgrade_groups")
+        remaining_days = state_data.get("remaining_days", 1)
+        group_lbl = (
+            "1 ta guruh"
+            if upgrade_groups == 1
+            else ("2 ta guruh" if upgrade_groups == 2 else "3-5 ta guruh")
+        )
+
+        instructions = (
+            f"💳 <b>Tarifni oshirish uchun to'lov:</b>\n\n"
+            f"📦 Yangi tarif: <b>{format_price(upgrade_products)} tagacha ID</b> ({group_lbl})\n"
+            f"⏳ Qolgan muddat: <b>{remaining_days} kun</b>\n"
+            f"💰 To'lanadigan farq summasi: <b>{_formatted_price(expected_amount)} so'm</b>\n\n"
+            f"Karta raqami: <code>{config.card_number}</code>\n"
+            f"Karta egasi: <b>{config.card_holder_name}</b>\n\n"
+            f"1️⃣ Karta raqamini bosib nusxa oling (copy)\n"
+            f"2️⃣ <b>{_formatted_price(expected_amount)} so'm</b> to'lovni amalga oshiring\n"
+            f"3️⃣ To'lov chekini (screenshot yoki rasm) shu yerga yuboring 👇"
+        )
+        await callback.message.answer(instructions)
+        await state.set_state(PaymentStates.waiting_for_receipt)
+        await callback.answer()
+        return
+
     if not user:
-        await callback.message.answer(t(language, "pricing_amount_unavailable"))
+        from utils.tariffs import products_selection_keyboard
+
+        await callback.message.answer(
+            "Iltimos, avval o'zingizga mos tarifni tanlang 👇",
+            reply_markup=products_selection_keyboard(),
+        )
         await callback.answer()
         return
 
     expected_amount = await _price_for_user(user)
     if expected_amount is None or expected_amount < 1:
-        await callback.message.answer(t(language, "pricing_amount_unavailable"))
+        from utils.tariffs import products_selection_keyboard
+
+        await callback.message.answer(
+            "Iltimos, avval o'zingizga mos tarifni tanlang 👇",
+            reply_markup=products_selection_keyboard(),
+        )
         await callback.answer()
         return
 
@@ -125,12 +160,20 @@ async def on_receipt_photo(message: Message, state: FSMContext, bot: Bot):
     language = user.language if user else "uz"
     state_data = await state.get_data()
     expected_amount = state_data.get("expected_amount")
+    is_upgrade = state_data.get("is_upgrade", False)
+    upgrade_products = state_data.get("upgrade_products")
+    upgrade_groups = state_data.get("upgrade_groups")
+    upgrade_price = state_data.get("upgrade_price")
 
     receipt_file_id = message.photo[-1].file_id
     payment_request = await create_payment_request(
         telegram_id=message.from_user.id,
         receipt_file_id=receipt_file_id,
         expected_amount=expected_amount,
+        is_upgrade=is_upgrade,
+        upgrade_products=upgrade_products,
+        upgrade_groups=upgrade_groups,
+        upgrade_price=upgrade_price,
     )
 
     await state.clear()
@@ -142,14 +185,37 @@ async def on_receipt_photo(message: Message, state: FSMContext, bot: Bot):
         )
         return
 
-    caption = t(
-        language,
-        "admin_new_payment_request",
-        full_name=message.from_user.full_name,
-        username=message.from_user.username or "-",
-        telegram_id=message.from_user.id,
-        price=_formatted_price(expected_amount),
-    )
+    from utils.tariffs import format_price
+
+    if is_upgrade:
+        group_lbl = (
+            "1 ta guruh"
+            if upgrade_groups == 1
+            else ("2 ta guruh" if upgrade_groups == 2 else "3-5 ta guruh")
+        )
+        caption = (
+            f"🔄 <b>YANGI TO'LOV CHEKI (TARIFNI OSHIRISH)!</b>\n\n"
+            f"👤 Foydalanuvchi: {message.from_user.full_name} (@{message.from_user.username or '-'})\n"
+            f"🆔 Telegram ID: <code>{message.from_user.id}</code>\n"
+            f"📦 Yangi tarif: <b>{format_price(upgrade_products)} tagacha ID ({group_lbl})</b>\n"
+            f"💰 Kutilayotgan farq summasi: <b>{_formatted_price(expected_amount)} so'm</b>\n\n"
+            f"Chekni tekshirib, quyidagi tugmalardan birini tanlang 👇"
+        )
+    else:
+        tariff_desc = (
+            f"{user.max_products:,} tagacha ID, {user.max_groups} ta guruh".replace(",", " ")
+            if (user and user.max_products and user.max_groups)
+            else "-"
+        )
+        caption = t(
+            language,
+            "admin_new_payment_request",
+            full_name=message.from_user.full_name,
+            username=message.from_user.username or "-",
+            telegram_id=message.from_user.id,
+            tariff=tariff_desc,
+            price=_formatted_price(expected_amount),
+        )
 
     admin_message_ids: dict[int, int] = {}
     for admin_id in config.admin_ids:
@@ -190,14 +256,38 @@ async def _sync_admin_messages(
 
     user = await get_user(payment_request.telegram_id)
     language = user.language if user else "uz"
-    base_caption = t(
-        language,
-        "admin_new_payment_request",
-        full_name=(user.full_name if user and user.full_name else "-"),
-        username=(user.username if user and user.username else "-"),
-        telegram_id=payment_request.telegram_id,
-        price=_formatted_price(payment_request.expected_amount),
-    )
+
+    if payment_request.is_upgrade:
+        from utils.tariffs import format_price
+
+        group_lbl = (
+            "1 ta guruh"
+            if payment_request.upgrade_groups == 1
+            else ("2 ta guruh" if payment_request.upgrade_groups == 2 else "3-5 ta guruh")
+        )
+        base_caption = (
+            f"🔄 <b>Yangi to'lov cheki (TARIFNI OSHIRISH)!</b>\n\n"
+            f"👤 Foydalanuvchi: {(user.full_name if user and user.full_name else '-')}"
+            f" (@{user.username if user and user.username else '-'})\n"
+            f"🆔 Telegram ID: <code>{payment_request.telegram_id}</code>\n"
+            f"📦 Yangi tarif: <b>{format_price(payment_request.upgrade_products)} tagacha ID ({group_lbl})</b>\n"
+            f"💰 Kutilayotgan farq summasi: {_formatted_price(payment_request.expected_amount)} so'm"
+        )
+    else:
+        tariff_desc = (
+            f"{user.max_products:,} tagacha ID, {user.max_groups} ta guruh".replace(",", " ")
+            if (user and user.max_products and user.max_groups)
+            else "-"
+        )
+        base_caption = t(
+            language,
+            "admin_new_payment_request",
+            full_name=(user.full_name if user and user.full_name else "-"),
+            username=(user.username if user and user.username else "-"),
+            telegram_id=payment_request.telegram_id,
+            tariff=tariff_desc,
+            price=_formatted_price(payment_request.expected_amount),
+        )
 
     for admin_id_str, message_id in admin_message_ids.items():
         try:
@@ -236,36 +326,63 @@ async def on_admin_approve(callback: CallbackQuery, bot: Bot):
         return
     language = target_user.language or "uz"
 
-    candidate_login = await generate_unique_login()
-    candidate_password = generate_strong_password()
-    candidate_password_encrypted = encrypt_password(candidate_password)
-    candidate_password_hash = hash_password_for_site(candidate_password)
+    if payment_request.is_upgrade:
+        from database.requests import apply_tariff_upgrade
+        from utils.tariffs import format_price
 
-    login, password_encrypted = await renew_or_activate_subscription(
-        telegram_id=payment_request.telegram_id,
-        payment_method="card",
-        payment_id=f"CARD-{payment_request.id}",
-        new_login=candidate_login,
-        new_password_encrypted=candidate_password_encrypted,
-        new_password_hash=candidate_password_hash,
-    )
-
-    # Har doim asl (bir marta yaratilgan, o'zgarmas) parolni ko'rsatamiz
-    password = decrypt_password(password_encrypted)
-
-    try:
-        await bot.send_message(
-            payment_request.telegram_id,
-            t(
-                language,
-                "payment_success",
-                login=login,
-                password=password,
-            ),
-            reply_markup=reports_keyboard(),
+        await apply_tariff_upgrade(
+            telegram_id=payment_request.telegram_id,
+            new_products=payment_request.upgrade_products or 1000,
+            new_groups=payment_request.upgrade_groups or 1,
+            new_price=payment_request.upgrade_price or 299_000,
         )
-    except Exception:
-        logger.exception("Userga tasdiqlash xabarini yuborishda xatolik")
+        group_lbl = (
+            "1 ta guruh"
+            if payment_request.upgrade_groups == 1
+            else ("2 ta guruh" if payment_request.upgrade_groups == 2 else "3-5 ta guruh")
+        )
+        try:
+            await bot.send_message(
+                payment_request.telegram_id,
+                f"✅ <b>Tarifingiz muvaffaqiyatli oshirildi!</b>\n\n"
+                f"📦 Yangi tovar limiti: <b>{format_price(payment_request.upgrade_products)} tagacha ID</b>\n"
+                f"👥 Yangi guruh limiti: <b>{group_lbl}</b>\n\n"
+                f"Amaldagi obuna muddati saqlanib qoldi va yangi limitlaringiz zudlik bilan kuchga kirdi!",
+                reply_markup=reports_keyboard(include_upgrade=True),
+            )
+        except Exception:
+            logger.exception("Userga tarif oshirish tasdiq xabarini yuborishda xatolik")
+    else:
+        candidate_login = await generate_unique_login()
+        candidate_password = generate_strong_password()
+        candidate_password_encrypted = encrypt_password(candidate_password)
+        candidate_password_hash = hash_password_for_site(candidate_password)
+
+        login, password_encrypted = await renew_or_activate_subscription(
+            telegram_id=payment_request.telegram_id,
+            payment_method="card",
+            payment_id=f"CARD-{payment_request.id}",
+            new_login=candidate_login,
+            new_password_encrypted=candidate_password_encrypted,
+            new_password_hash=candidate_password_hash,
+        )
+
+        # Har doim asl (bir marta yaratilgan, o'zgarmas) parolni ko'rsatamiz
+        password = decrypt_password(password_encrypted)
+
+        try:
+            await bot.send_message(
+                payment_request.telegram_id,
+                t(
+                    language,
+                    "payment_success",
+                    login=login,
+                    password=password,
+                ),
+                reply_markup=reports_keyboard(include_upgrade=True),
+            )
+        except Exception:
+            logger.exception("Userga tasdiqlash xabarini yuborishda xatolik")
 
     await finalize_payment_approval(request_id)
 

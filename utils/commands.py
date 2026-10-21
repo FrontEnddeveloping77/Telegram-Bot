@@ -3,6 +3,7 @@ from aiogram.types import BotCommand, BotCommandScopeDefault, MenuButtonCommands
 
 COMMANDS_UZ = [
     BotCommand(command="start", description="Botni ishga tushirish / qayta boshlash"),
+    BotCommand(command="tariflar", description="Tariflar va to'lov rejalari"),
     BotCommand(command="menu", description="Hisobotlar menyusi"),
 ]
 

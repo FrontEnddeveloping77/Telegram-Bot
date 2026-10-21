@@ -1,5 +1,6 @@
+from typing import Any
 from datetime import datetime
-from sqlalchemy import BigInteger, String, Boolean, DateTime, Text, func
+from sqlalchemy import BigInteger, String, Boolean, DateTime, Text, func, JSON
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
 
@@ -22,6 +23,9 @@ class User(Base):
     is_paid: Mapped[bool] = mapped_column(Boolean, default=False)
     pricing_model: Mapped[str | None] = mapped_column(String(32), nullable=True)
     product_count: Mapped[int | None] = mapped_column(nullable=True)
+    max_products: Mapped[int | None] = mapped_column(nullable=True)
+    max_groups: Mapped[int | None] = mapped_column(nullable=True)
+    tariff_price: Mapped[int | None] = mapped_column(nullable=True)
     last_reminder_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
@@ -84,6 +88,10 @@ class PaymentRequest(Base):
     telegram_id: Mapped[int] = mapped_column(BigInteger, index=True)
     receipt_file_id: Mapped[str] = mapped_column(String(255))
     expected_amount: Mapped[int | None] = mapped_column(nullable=True)
+    is_upgrade: Mapped[bool] = mapped_column(Boolean, default=False)
+    upgrade_products: Mapped[int | None] = mapped_column(nullable=True)
+    upgrade_groups: Mapped[int | None] = mapped_column(nullable=True)
+    upgrade_price: Mapped[int | None] = mapped_column(nullable=True)
 
     status: Mapped[str] = mapped_column(String(20), default="pending")
 
@@ -119,8 +127,8 @@ class Notification(Base):
     photo_url: Mapped[str | None] = mapped_column(Text, nullable=True)
     product_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
     product_category: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    delivered_chat_ids: Mapped[str] = mapped_column(
-        Text, nullable=False, default="[]", server_default="[]"
+    delivered_chat_ids: Mapped[Any] = mapped_column(
+        JSON, nullable=False, default=list, server_default="[]"
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now()

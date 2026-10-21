@@ -250,14 +250,15 @@ async def notifications_watcher(bot: Bot) -> None:
                 # ==================================================
 
                 any_sent = False
-                try:
-                    delivered_chat_ids = {
-                        int(value)
-                        for value in json.loads(
-                            getattr(notification, "delivered_chat_ids", "[]") or "[]"
-                        )
-                    }
-                except (TypeError, ValueError):
+                val = getattr(notification, "delivered_chat_ids", [])
+                if isinstance(val, list):
+                    delivered_chat_ids = {int(v) for v in val}
+                elif isinstance(val, str):
+                    try:
+                        delivered_chat_ids = {int(v) for v in json.loads(val or "[]")}
+                    except (TypeError, ValueError):
+                        delivered_chat_ids = set()
+                else:
                     delivered_chat_ids = set()
 
                 for chat_id in chat_ids:

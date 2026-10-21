@@ -64,6 +64,21 @@ async def update_product_count(telegram_id: int, product_count: int) -> None:
             await session.commit()
 
 
+async def set_user_tariff(
+    telegram_id: int, max_products: int, max_groups: int, price: int
+) -> None:
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.max_products = max_products
+            user.max_groups = max_groups
+            user.tariff_price = price
+            await session.commit()
+
+
 async def activate_trial(
     telegram_id: int,
     new_login: str,
@@ -349,12 +364,18 @@ async def mark_notification_chat_sent(
         if not notification:
             return
 
-        try:
-            delivered = {int(value) for value in json.loads(notification.delivered_chat_ids or "[]")}
-        except (TypeError, ValueError):
+        delivered_raw = notification.delivered_chat_ids
+        if isinstance(delivered_raw, list):
+            delivered = {int(value) for value in delivered_raw}
+        elif isinstance(delivered_raw, str):
+            try:
+                delivered = {int(value) for value in json.loads(delivered_raw or "[]")}
+            except (TypeError, ValueError):
+                delivered = set()
+        else:
             delivered = set()
         delivered.add(int(chat_id))
-        notification.delivered_chat_ids = json.dumps(sorted(delivered))
+        notification.delivered_chat_ids = sorted(delivered)
         if set(expected_chat_ids).issubset(delivered):
             notification.is_sent = True
         await session.commit()
@@ -364,19 +385,50 @@ async def mark_notification_chat_sent(
 
 
 async def create_payment_request(
-    telegram_id: int, receipt_file_id: str, expected_amount: int | None = None
+    telegram_id: int,
+    receipt_file_id: str,
+    expected_amount: int | None = None,
+    is_upgrade: bool = False,
+    upgrade_products: int | None = None,
+    upgrade_groups: int | None = None,
+    upgrade_price: int | None = None,
 ) -> PaymentRequest:
     async with async_session() as session:
         payment_request = PaymentRequest(
             telegram_id=telegram_id,
             receipt_file_id=receipt_file_id,
             expected_amount=expected_amount,
+            is_upgrade=is_upgrade,
+            upgrade_products=upgrade_products,
+            upgrade_groups=upgrade_groups,
+            upgrade_price=upgrade_price,
             status="pending",
         )
         session.add(payment_request)
         await session.commit()
         await session.refresh(payment_request)
         return payment_request
+
+
+async def apply_tariff_upgrade(
+    telegram_id: int,
+    new_products: int,
+    new_groups: int,
+    new_price: int,
+) -> User | None:
+    """Tarifni oshiradi: tovar va guruh limitlari hamda yangi oylik narx yangilanadi."""
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.max_products = new_products
+            user.max_groups = new_groups
+            user.tariff_price = new_price
+            await session.commit()
+            await session.refresh(user)
+        return user
 
 
 async def get_payment_request(request_id: int) -> PaymentRequest | None:

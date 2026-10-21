@@ -4,15 +4,19 @@ TEXTS = {
         "language_set": "✅ Til o'zbekcha qilib o'rnatildi.",
         "welcome_offer": (
             "Assalomu alaykum, {name}! 👋\n\n"
-            "Do'koningizda nechta xil tovar bor? Sizga mos to'lov usulini tanlang 👇"
+            "Botdan foydalanish uchun o'zingizga mos tarifni tanlang.\n\n"
+            "📦 <b>1-qadam: Do'koningizdagi tovar turlari (ID) sonini tanlang:</b>"
         ),
-        "pricing_profit": (
-            "💸 <b>FOYDADAN TO'LOV</b> 💸\n\n"
-            "🛍 Sotilgan tovarlardan olgan oylik sof foydangizning <b>15% ini</b> bizga to'laysiz."
+        "select_group_count": (
+            "📦 <b>Tovar turlari:</b> {products} tagacha ID tanlandi.\n\n"
+            "👥 <b>2-qadam: Bot ulanishi kerak bo'lgan Telegram guruhlar sonini tanlang:</b>"
         ),
-        "pricing_products": (
-            "📦 <b>TOVAR SONI BO'YICHA TO'LOV</b> 📦\n\n"
-            "🧾 Har <b>100 xil tovar (100 ta ID)</b> uchun <b>50 000 so'm</b>."
+        "tariff_selected_summary": (
+            "📋 <b>Tanlangan tarif:</b>\n\n"
+            "📦 Tovar turlari: <b>{products} tagacha ID</b>\n"
+            "👥 Guruhlar soni: <b>{groups}</b>\n"
+            "💰 Oylik to'lov: <b>{price} so'm</b>\n\n"
+            "To'lovni amalga oshirish uchun quyidagi <b>\"💳 To'lov qilish\"</b> tugmasini bosing 👇"
         ),
         "trial_credentials": (
             "🔐 <b>Akkaunt ma'lumotlaringiz</b>\n"
@@ -29,13 +33,6 @@ TEXTS = {
         "trial_expired": (
             "⏰ Bepul sinov muddati avval ishlatilgan va tugagan.\n"
             "Akkauntingizni faollashtirish uchun to'lov qiling."
-        ),
-        "ask_product_count": "Do'koningizda nechta xil tovar (ID) bor? Faqat sonini yuboring.",
-        "product_count_received": "Rahmat! Tovar soni saqlandi. Endi yuqoridagi tariflardan birini tanlang.",
-        "invalid_product_count": "Iltimos, tovarlar sonini musbat butun son qilib yuboring.",
-        "product_count_saved": (
-            "📦 {count} xil tovar uchun hisob: <b>{price} so'm</b>\n"
-            "(Har 100 ta ID uchun 50 000 so'm; 100 dan kam bo'lsa ham 50 000 so'm.)"
         ),
         "btn_pay": "💳 To'lov qilish",
         "card_payment_instructions": (
@@ -62,6 +59,7 @@ TEXTS = {
             "🆕 Yangi to'lov cheki!\n\n"
             "👤 Foydalanuvchi: {full_name} (@{username})\n"
             "🆔 Telegram ID: <code>{telegram_id}</code>\n"
+            "📦 Tarif: <b>{tariff}</b>\n"
             "💰 Kutilayotgan summa: {price} so'm\n\n"
             "Chekni tekshirib, quyidagi tugmalardan birini tanlang 👇"
         ),

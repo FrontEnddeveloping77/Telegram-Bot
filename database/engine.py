@@ -23,6 +23,15 @@ async def init_db() -> None:
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS product_count INTEGER"
         )
         await conn.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS max_products INTEGER"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS max_groups INTEGER"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS tariff_price INTEGER"
+        )
+        await conn.exec_driver_sql(
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_reminder_at TIMESTAMPTZ"
         )
         await conn.exec_driver_sql(
@@ -33,6 +42,18 @@ async def init_db() -> None:
         )
         await conn.exec_driver_sql(
             "ALTER TABLE payment_requests ADD COLUMN IF NOT EXISTS expected_amount INTEGER"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE payment_requests ADD COLUMN IF NOT EXISTS is_upgrade BOOLEAN NOT NULL DEFAULT FALSE"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE payment_requests ADD COLUMN IF NOT EXISTS upgrade_products INTEGER"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE payment_requests ADD COLUMN IF NOT EXISTS upgrade_groups INTEGER"
+        )
+        await conn.exec_driver_sql(
+            "ALTER TABLE payment_requests ADD COLUMN IF NOT EXISTS upgrade_price INTEGER"
         )
         await conn.exec_driver_sql(
             "CREATE INDEX IF NOT EXISTS idx_users_linked_group_chat_id "

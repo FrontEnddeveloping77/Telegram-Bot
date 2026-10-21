@@ -106,6 +106,25 @@ async def on_credentials_submitted(message: Message, bot: Bot):
         )
         return
 
+    from database.requests import get_linked_group_chat_ids
+
+    linked_ids = await get_linked_group_chat_ids(user)
+    if message.chat.id not in linked_ids and user.max_groups and len(linked_ids) >= user.max_groups:
+        logger.info(
+            "[group] limit to'lgan: login=%s max_groups=%s (chat=%s)",
+            login,
+            user.max_groups,
+            message.chat.id,
+        )
+        await bot.send_message(
+            message.chat.id,
+            f"⚠️ <b>Guruh ulash limiti to'lgan!</b>\n\n"
+            f"Sizning tarifingiz bo'yicha ko'pi bilan <b>{user.max_groups} ta guruh</b> ulash mumkin.\n"
+            f"Hozirda bog'langan guruhlar soni: <b>{len(linked_ids)} ta</b>.\n\n"
+            f"Ko'proq guruh ulash yoki 5 tadan ko'p guruhga ulash uchun adminga murojaat qiling: @ABDULAZIZ_AVAZOV",
+        )
+        return
+
     await link_group_to_user(login, message.chat.id)
     logger.info(
         "[group] MUVAFFAQIYATLI bog'landi: login=%s chat_id=%s",
@@ -132,11 +151,14 @@ async def on_credentials_submitted(message: Message, bot: Bot):
     except Exception:
         pass
 
+    updated_linked = await get_linked_group_chat_ids(user)
+    limit_str = f"{len(updated_linked)}/{user.max_groups} ta" if user.max_groups else f"{len(updated_linked)} ta"
+
     await bot.send_message(
         message.chat.id,
-        "✅ Guruh muvaffaqiyatli bog'landi!\n\n"
-        "Bir login bilan cheksiz guruh bog'lash mumkin.\n"
-        "Saytdagi o'zgarishlar barcha bog'langan guruhlarga yuboriladi.\n\n"
-        "Hisobotlar uchun chap tomondagi <b>Menu</b> tugmasidan foydalaning yoki /menu bosing 👇",
+        f"✅ <b>Guruh muvaffaqiyatli bog'landi!</b>\n\n"
+        f"👥 Bog'langan guruhlar: <b>{limit_str}</b>\n"
+        f"Saytdagi o'zgarishlar barcha bog'langan guruhlarga yuboriladi.\n\n"
+        f"Hisobotlar uchun chap tomondagi <b>Menu</b> tugmasidan foydalaning yoki /menu bosing 👇",
         reply_markup=reports_keyboard(),
     )

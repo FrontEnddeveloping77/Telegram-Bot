@@ -18,17 +18,9 @@ def pay_keyboard() -> InlineKeyboardMarkup:
 
 
 def pricing_keyboard() -> InlineKeyboardMarkup:
-    builder = InlineKeyboardBuilder()
-    builder.button(
-        text="💰 Sotilgan tovar foydasidan pul to'lash",
-        callback_data="pricing:profit",
-    )
-    builder.button(
-        text="📦 Kiritilgan tovar soniga pul to'lash",
-        callback_data="pricing:products",
-    )
-    builder.adjust(1)
-    return builder.as_markup()
+    from utils.tariffs import products_selection_keyboard
+
+    return products_selection_keyboard()
 
 
 def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
@@ -39,7 +31,7 @@ def admin_review_keyboard(request_id: int) -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
-def reports_keyboard(include_payment: bool = False) -> InlineKeyboardMarkup:
+def reports_keyboard(include_payment: bool = False, include_upgrade: bool = False) -> InlineKeyboardMarkup:
     """Guruh va shaxsiy chatlarda bir xilda ishlashi uchun inline (xabar ostidagi)
     tugmalar ishlatiladi — ReplyKeyboardMarkup'dan farqli o'laroq, bu klaviatura
     Telegramning "ochish/yopish" tugmasiga bog'liq emas va Android/iOS/Desktop'da
@@ -63,6 +55,12 @@ def reports_keyboard(include_payment: bool = False) -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="💸 Jami qarzimiz", callback_data="rep:debt_ours"),
         InlineKeyboardButton(text="👥 Bizga qarzdorlar", callback_data="rep:debtors"),
     )
+    if include_upgrade:
+        builder.row(
+            InlineKeyboardButton(
+                text="🚀 Tarifni oshirish (Upgrade)", callback_data="tariff:upgrade_flow"
+            )
+        )
     if include_payment:
         builder.row(
             InlineKeyboardButton(
