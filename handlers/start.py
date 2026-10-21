@@ -28,6 +28,7 @@ from utils.tariffs import (
     calculate_tariff_price,
     calculate_upgrade_proration,
     format_price,
+    get_admin_contact_url,
     ADMIN_CONTACT_URL,
 )
 
@@ -298,6 +299,10 @@ async def on_tariff_selected(callback: CallbackQuery, state: FSMContext):
             )
             b = InlineKeyboardBuilder()
             b.button(text="🔄 Boshqa tarif tanlash", callback_data="tariff:back_to_products")
+            b.button(
+                text="💬 Adminga murojaat qilish",
+                url=get_admin_contact_url("Assalomu alaykum! Tarifimni o'zgartirish bo'yicha yordam kerak edi."),
+            )
             b.button(text="⬅️ Bekor qilish", callback_data="tariff:cancel_upgrade")
             b.adjust(1)
             try:

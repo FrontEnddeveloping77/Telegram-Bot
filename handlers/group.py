@@ -4,9 +4,16 @@ import re
 import bcrypt
 from aiogram import Router, F, Bot
 from aiogram.enums import ChatMemberStatus, ChatType
-from aiogram.types import Message, ChatMemberUpdated, ReplyKeyboardRemove
+from aiogram.types import (
+    Message,
+    ChatMemberUpdated,
+    ReplyKeyboardRemove,
+    InlineKeyboardMarkup,
+    InlineKeyboardButton,
+)
 
 from database.requests import get_user_by_login, link_group_to_user
+from utils.tariffs import get_admin_contact_url
 
 router = Router(name="group")
 logger = logging.getLogger(__name__)
@@ -116,12 +123,26 @@ async def on_credentials_submitted(message: Message, bot: Bot):
             user.max_groups,
             message.chat.id,
         )
+        markup = InlineKeyboardMarkup(
+            inline_keyboard=[
+                [
+                    InlineKeyboardButton(
+                        text="💬 Adminga yozish (Ko'proq guruh)",
+                        url=get_admin_contact_url(
+                            f"Assalomu alaykum! Do'konim uchun {user.max_groups} tadan ko'p guruh ulamoqchiman. "
+                            f"Guruh ulash limitini oshirish bo'yicha ma'lumot bersangiz."
+                        ),
+                    )
+                ]
+            ]
+        )
         await bot.send_message(
             message.chat.id,
             f"⚠️ <b>Guruh ulash limiti to'lgan!</b>\n\n"
             f"Sizning tarifingiz bo'yicha ko'pi bilan <b>{user.max_groups} ta guruh</b> ulash mumkin.\n"
             f"Hozirda bog'langan guruhlar soni: <b>{len(linked_ids)} ta</b>.\n\n"
             f"Ko'proq guruh ulash yoki 5 tadan ko'p guruhga ulash uchun adminga murojaat qiling: @ABDULAZIZ_AVAZOV",
+            reply_markup=markup,
         )
         return
 

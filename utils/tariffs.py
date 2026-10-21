@@ -19,11 +19,19 @@ oylik to'lov tariflarini tanlaydilar:
    Admin bilan to'g'ridan-to'g'ri bog'lanish: @ABDULAZIZ_AVAZOV
 """
 
+from urllib.parse import quote
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 ADMIN_USERNAME = "ABDULAZIZ_AVAZOV"
 ADMIN_CONTACT_URL = f"https://t.me/{ADMIN_USERNAME}"
+
+
+def get_admin_contact_url(text: str | None = None) -> str:
+    """Admin bilan bog'lanish havolasi (avtomatik tayyor matn bilan birga)."""
+    if not text:
+        return f"https://t.me/{ADMIN_USERNAME}"
+    return f"https://t.me/{ADMIN_USERNAME}?text={quote(text)}"
 
 # Qo'llab-quvvatlanadigan tovar toifalari (ID lar soni)
 AVAILABLE_PRODUCT_TIERS = [1000, 2000, 3000, 4000, 5000]
@@ -150,9 +158,13 @@ def products_selection_keyboard() -> InlineKeyboardMarkup:
         )
 
     # 5 000 tadan ko'p tovar yoki 5 tadan ko'p guruh uchun adminga murojaat
+    custom_products_text = (
+        "Assalomu alaykum! Men do'konim uchun 5 000 tadan ko'p tovar (ID) "
+        "yoki 5 tadan ko'p guruh ulamoqchiman. Maxsus tarif shartlarini kelishmoqchi edim."
+    )
     builder.button(
         text="💬 5 000+ tovar yoki 5+ guruh (Maxsus tarif)",
-        url=ADMIN_CONTACT_URL,
+        url=get_admin_contact_url(custom_products_text),
     )
     builder.adjust(1)
     return builder.as_markup()
@@ -170,9 +182,13 @@ def groups_selection_keyboard(max_products: int) -> InlineKeyboardMarkup:
         )
 
     # 5 tadan ko'p guruh uchun adminga murojaat
+    custom_groups_text = (
+        f"Assalomu alaykum! Men do'konim uchun {format_price(max_products)} tagacha tovar va "
+        "5 tadan ko'p guruh ulamoqchiman. Maxsus tarif shartlarini kelishmoqchi edim."
+    )
     builder.button(
         text="💬 5 tadan ko'p guruh (@ABDULAZIZ_AVAZOV)",
-        url=ADMIN_CONTACT_URL,
+        url=get_admin_contact_url(custom_groups_text),
     )
     # Orqaga tugmasi
     builder.button(
@@ -194,9 +210,18 @@ def tariff_confirmation_keyboard(max_products: int, max_groups: int) -> InlineKe
         text="🔄 Tarifni o'zgartirish",
         callback_data="tariff:back_to_products",
     )
+    group_label = (
+        "1 ta guruh"
+        if max_groups == 1
+        else ("2 ta guruh" if max_groups == 2 else "3-5 ta guruh")
+    )
+    questions_text = (
+        f"Assalomu alaykum! Men {format_price(max_products)} tagacha tovar va "
+        f"{group_label} tarifi bo'yicha savol bermoqchi edim."
+    )
     builder.button(
         text="💬 Savollar bo'yicha bog'lanish",
-        url=ADMIN_CONTACT_URL,
+        url=get_admin_contact_url(questions_text),
     )
     builder.adjust(1)
     return builder.as_markup()
