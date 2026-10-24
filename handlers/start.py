@@ -13,25 +13,33 @@ from database.requests import (
     get_user,
     get_user_by_group_chat_id,
     set_user_tariff,
+    set_user_returns_enabled,
+    activate_trial,
 )
 from locales.texts import t
 from utils.keyboards import (
     reports_keyboard,
     clear_old_reply_keyboard,
 )
-from utils.credentials import decrypt_password
+from utils.credentials import (
+    decrypt_password,
+    generate_unique_login,
+    generate_strong_password,
+    encrypt_password,
+    hash_password_for_site,
+)
 from utils.tariffs import (
     products_selection_keyboard,
     groups_selection_keyboard,
-    tariff_confirmation_keyboard,
     upgrade_confirmation_keyboard,
     calculate_tariff_price,
     calculate_upgrade_proration,
     format_price,
     get_admin_contact_url,
     ADMIN_CONTACT_URL,
+    return_policy_keyboard,
+    account_setup_keyboard,
 )
-
 router = Router(name="start")
 
 LANG = "uz"  # Bot faqat o'zbekcha
@@ -328,10 +336,65 @@ async def on_tariff_selected(callback: CallbackQuery, state: FSMContext):
         groups=group_label,
         price=format_price(price),
     )
-    markup = tariff_confirmation_keyboard(max_products, max_groups)
+    summary_text += f"\n\n{t(LANG, 'returns_policy_question')}"
+    markup = return_policy_keyboard()
 
     try:
         await callback.message.edit_text(summary_text, reply_markup=markup)
     except Exception:
         await callback.message.answer(summary_text, reply_markup=markup)
+    await callback.answer()
+
+
+@router.callback_query(F.data.in_({"tariff:return:yes", "tariff:return:no"}))
+async def on_return_policy_selected(callback: CallbackQuery):
+    returns_enabled = callback.data == "tariff:return:yes"
+    await set_user_returns_enabled(callback.from_user.id, returns_enabled)
+
+    user = await get_user(callback.from_user.id)
+    if not user:
+        await callback.answer("Akkaunt topilmadi", show_alert=True)
+        return
+
+    await callback.message.edit_text(
+        t(
+            LANG,
+            "returns_policy_saved",
+            choice=t(LANG, "returns_enabled" if returns_enabled else "returns_disabled"),
+        ),
+        reply_markup=account_setup_keyboard(is_trial_available=user.site_login is None),
+    )
+    await callback.answer()
+
+
+@router.callback_query(F.data == "tariff:trial:start")
+async def on_trial_start(callback: CallbackQuery):
+    user = await get_user(callback.from_user.id)
+    if not user or user.returns_enabled is None:
+        await callback.answer("Avval qaytarish siyosatini tanlang", show_alert=True)
+        return
+    if user.site_login is not None:
+        await callback.answer("Bepul sinov faqat yangi akkaunt uchun beriladi", show_alert=True)
+        return
+
+    password = generate_strong_password()
+    activated_user = await activate_trial(
+        telegram_id=callback.from_user.id,
+        new_login=await generate_unique_login(),
+        new_password_encrypted=encrypt_password(password),
+        new_password_hash=hash_password_for_site(password),
+    )
+    if not activated_user:
+        await callback.answer("Bepul sinovni faollashtirib bo'lmadi", show_alert=True)
+        return
+
+    await callback.message.edit_text(
+        t(
+            LANG,
+            "trial_credentials",
+            login=activated_user.site_login,
+            password=password,
+        ),
+        reply_markup=reports_keyboard(include_payment=True, include_upgrade=True),
+    )
     await callback.answer()

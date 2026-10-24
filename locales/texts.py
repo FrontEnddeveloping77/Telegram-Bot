@@ -22,8 +22,15 @@ TEXTS = {
             "🔐 <b>Akkaunt ma'lumotlaringiz</b>\n"
             "Login: <code>{login}</code>\n"
             "Parol: <code>{password}</code>\n\n"
-            "⏳ Bepul foydalanish muddati: <b>3 kun</b>. Ma'lumotlarni saqlab qo'ying."
+            "⏳ Bepul foydalanish muddati: <b>7 kun</b>. Ma'lumotlarni saqlab qo'ying."
         ),
+        "returns_policy_question": "Tovarlaringiz uchun qaytarish (vozvrat) qabul qilasizmi?",
+        "returns_policy_saved": (
+            "✅ Qaytarish sozlamasi saqlandi: <b>{choice}</b>.\n\n"
+            "Davom etish usulini tanlang:"
+        ),
+        "returns_enabled": "qaytarish qabul qilinadi",
+        "returns_disabled": "qaytarish qabul qilinmaydi",
         "existing_credentials": (
             "🔐 <b>Akkaunt ma'lumotlaringiz</b>\n"
             "Login: <code>{login}</code>\n"
@@ -92,20 +99,22 @@ TEXTS = {
             "🔑 Parol: <code>{password}</code>"
         ),
         "subscription_expired": (
-            "⏰ Bepul/oldingi foydalanish muddati tugadi. Akkauntingiz hozircha saqlanadi.\n"
-            "To'lov amalga oshirilmasa, muddati tugaganidan 2 oy o'tgach akkaunt o'chiriladi."
+            "⏰ To'lov muddati tugadi. Akkauntingiz va ma'lumotlaringiz hozircha saqlanadi.\n"
+            "To'lov qilmasangiz, 10 kundan so'ng 3 kun ketma-ket soat 10:00 da "
+            "ogohlantirish yuboriladi. Shundan keyin akkauntingiz o'chiriladi."
         ),
         "payment_reminder": (
             "⏰ To'lov muddati o'tgan. Akkauntingiz va ma'lumotlaringiz hozircha saqlanadi.\n"
-            "Akkaunt muddati tugaganidan 2 oy o'tib, 3 kunlik ogohlantirishlardan so'ng o'chiriladi."
+            "To'lov muddati o'tganidan 10 kun o'tgach, 3 kun ketma-ket soat 10:00 da "
+            "ogohlantirish yuboriladi. Shundan so'ng akkauntingiz o'chiriladi."
         ),
         "pricing_amount_unavailable": (
             "To'lov summasini hozir hisoblab bo'lmadi. Tovarlar sonini kiriting yoki birozdan keyin qayta urinib ko'ring."
         ),
         "deletion_warning": (
             "⚠️ <b>DIQQAT: AKKAUNT O'CHIRILISHI MUMKIN</b> ⚠️\n\n"
-            "To'lov muddati tugaganiga 2 oy bo'ldi. Akkauntingiz va undagi ma'lumotlar "
-            "3 kun ketma-ket ogohlantirishdan keyin o'chiriladi.\n"
+            "Akkauntingiz 3 kun ketma-ket ogohlantiriladi. Uchinchi ogohlantirishdan "
+            "keyin akkauntingiz va undagi ma'lumotlar o'chiriladi.\n"
             "❗ Akkauntni saqlab qolish uchun to'lovni amalga oshiring."
         ),
         "tutorial_caption": (
@@ -204,11 +213,13 @@ TEXTS = {
         ),
         "payment_reminder": (
             "⏰ Срок оплаты истёк. Аккаунт и данные пока сохранены.\n"
-            "Через 2 месяца аккаунт будет удалён после трёх ежедневных предупреждений."
+            "Через 10 дней после окончания срока оплаты предупреждения будут отправляться "
+            "ежедневно 3 дня подряд. После этого аккаунт будет удалён."
         ),
         "deletion_warning": (
             "⚠️ <b>АККАУНТ МОЖЕТ БЫТЬ УДАЛЁН</b> ⚠️\n\n"
-            "После трёх ежедневных предупреждений аккаунт и его данные будут удалены.\n"
+            "Вы получите предупреждение 3 дня подряд. После третьего предупреждения "
+            "аккаунт и его данные будут удалены.\n"
             "❗ Оплатите, чтобы сохранить аккаунт."
         ),
         "pricing_amount_unavailable": "Не удалось рассчитать сумму. Проверьте количество товаров или попробуйте позже.",
@@ -308,11 +319,13 @@ TEXTS = {
         ),
         "payment_reminder": (
             "⏰ Your payment period has expired. Your account and data are still retained.\n"
-            "The account will be deleted after three daily warnings, two months after expiry."
+            "Starting 10 days after expiry, warnings will be sent for 3 consecutive days. "
+            "Your account will be deleted after that."
         ),
         "deletion_warning": (
             "⚠️ <b>ACCOUNT AT RISK OF DELETION</b> ⚠️\n\n"
-            "Your account and its data will be deleted after three daily warnings.\n"
+            "You will receive warnings for 3 consecutive days. Your account and its data "
+            "will be deleted after the third warning.\n"
             "❗ Make a payment to keep your account."
         ),
         "pricing_amount_unavailable": "Couldn't calculate the amount. Check the product count or try again later.",

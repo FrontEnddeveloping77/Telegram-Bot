@@ -1,5 +1,4 @@
 import asyncio
-import calendar
 import logging
 from datetime import datetime, timedelta, timezone
 
@@ -20,22 +19,20 @@ CHECK_INTERVAL_SECONDS = 60
 REMINDER_HOUR = 10
 LOCAL_TIMEZONE = timezone(timedelta(hours=5), "Asia/Tashkent")
 FINAL_WARNING_DAYS = 3
+PAID_GRACE_DAYS = 10
 
 
 def _as_utc(value: datetime) -> datetime:
     return value.replace(tzinfo=timezone.utc) if value.tzinfo is None else value.astimezone(timezone.utc)
 
 
-def _add_two_months(value: datetime) -> datetime:
-    month_index = value.month - 1 + 2
-    year = value.year + month_index // 12
-    month = month_index % 12 + 1
-    day = min(value.day, calendar.monthrange(year, month)[1])
-    return value.replace(year=year, month=month, day=day)
+def _deletion_deadline(expires_at: datetime, payment_method: str | None) -> datetime:
+    grace_days = 0 if payment_method == "trial" else PAID_GRACE_DAYS
+    return expires_at + timedelta(days=grace_days + FINAL_WARNING_DAYS)
 
 
 async def subscription_expiry_watcher(bot: Bot) -> None:
-    """Har kuni bir vaqtda to'lovni eslatadi, so'ng muddati o'tgan hisobni o'chiradi."""
+    """Har kuni Toshkent vaqti bilan eslatadi va belgilangan muddatda akkauntni o'chiradi."""
     while True:
         now = datetime.now(timezone.utc)
         local_now = now.astimezone(LOCAL_TIMEZONE)
@@ -56,7 +53,7 @@ async def subscription_expiry_watcher(bot: Bot) -> None:
                     if user.is_paid:
                         await expire_subscription(user.telegram_id)
 
-                    deletion_at = _add_two_months(expires_at)
+                    deletion_at = _deletion_deadline(expires_at, user.payment_method)
                     last_warning = (
                         _as_utc(user.last_deletion_warning_at)
                         if user.last_deletion_warning_at

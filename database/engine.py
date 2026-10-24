@@ -41,6 +41,9 @@ async def init_db() -> None:
             "ALTER TABLE users ADD COLUMN IF NOT EXISTS last_deletion_warning_at TIMESTAMPTZ"
         )
         await conn.exec_driver_sql(
+            "ALTER TABLE users ADD COLUMN IF NOT EXISTS returns_enabled BOOLEAN"
+        )
+        await conn.exec_driver_sql(
             "ALTER TABLE payment_requests ADD COLUMN IF NOT EXISTS expected_amount INTEGER"
         )
         await conn.exec_driver_sql(

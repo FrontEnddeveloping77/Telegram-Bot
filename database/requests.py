@@ -79,6 +79,17 @@ async def set_user_tariff(
             await session.commit()
 
 
+async def set_user_returns_enabled(telegram_id: int, enabled: bool) -> None:
+    async with async_session() as session:
+        result = await session.execute(
+            select(User).where(User.telegram_id == telegram_id)
+        )
+        user = result.scalar_one_or_none()
+        if user:
+            user.returns_enabled = enabled
+            await session.commit()
+
+
 async def activate_trial(
     telegram_id: int,
     new_login: str,
@@ -97,7 +108,7 @@ async def activate_trial(
                 is_paid=True,
                 payment_method="trial",
                 paid_at=now,
-                expires_at=now + timedelta(days=3),
+                expires_at=now + timedelta(days=7),
                 last_reminder_at=None,
                 deletion_warning_count=0,
                 last_deletion_warning_at=None,

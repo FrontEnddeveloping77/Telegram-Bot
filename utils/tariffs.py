@@ -227,6 +227,23 @@ def tariff_confirmation_keyboard(max_products: int, max_groups: int) -> InlineKe
     return builder.as_markup()
 
 
+def return_policy_keyboard() -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    builder.button(text="✅ Ha, qaytarish qabul qilaman", callback_data="tariff:return:yes")
+    builder.button(text="❌ Yo'q, qaytarish qabul qilmayman", callback_data="tariff:return:no")
+    builder.adjust(1)
+    return builder.as_markup()
+
+
+def account_setup_keyboard(is_trial_available: bool) -> InlineKeyboardMarkup:
+    builder = InlineKeyboardBuilder()
+    if is_trial_available:
+        builder.button(text="🎁 7 kun bepul foydalanish", callback_data="tariff:trial:start")
+    builder.button(text="💳 To'lov qilish", callback_data="pay:start")
+    builder.adjust(1)
+    return builder.as_markup()
+
+
 def upgrade_confirmation_keyboard(upgrade_amount: int) -> InlineKeyboardMarkup:
     """Tarifni oshirish uchun farqni to'lash klaviaturasi."""
     builder = InlineKeyboardBuilder()

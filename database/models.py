@@ -21,6 +21,7 @@ class User(Base):
     language_selected: Mapped[bool] = mapped_column(Boolean, default=False)
 
     is_paid: Mapped[bool] = mapped_column(Boolean, default=False)
+    returns_enabled: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     pricing_model: Mapped[str | None] = mapped_column(String(32), nullable=True)
     product_count: Mapped[int | None] = mapped_column(nullable=True)
     max_products: Mapped[int | None] = mapped_column(nullable=True)

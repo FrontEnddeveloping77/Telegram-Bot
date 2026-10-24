@@ -31,7 +31,9 @@ Birinchi ishga tushirishda kerakli jadvallar avtomatik yaratiladi.
 - ✅ Tariflar: 1 000, 2 000, 3 000, 4 000, 5 000 tagacha ID; 1 ta, 2 ta va 3-5 ta guruh variantlari mavjud.
 - ✅ 5 000 tadan ko'p tovar yoki 5 tadan ko'p guruh uchun to'g'ridan-to'g'ri admin (@ABDULAZIZ_AVAZOV) ga murojaat qilinadi.
 - ✅ Guruh limiti bot tomonidan avtomatik nazorat qilinadi.
-- ✅ Muddati tugagan akkauntga har kuni Toshkent vaqti bilan soat 10:00 dan keyin eslatma yuboriladi. Ikki kalendar oydan keyin uch kun ketma-ket ogohlantirish berilib, so'ng akkaunt va bot bazasidagi bog'liq ma'lumotlar o'chiriladi.
+- ✅ Yangi foydalanuvchi tarif tanlagach 7 kunlik bepul sinovni boshlashi mumkin.
+- ✅ Akkaunt sozlanayotganda tovarlar uchun qaytarish (vozvrat) siyosati so'ralib, foydalanuvchi tanlovi saqlanadi. Sayt backendida ushbu sozlamani ijro etish alohida integratsiyani talab qiladi.
+- ✅ Bepul sinov tugagach 3 kun ketma-ket, Toshkent vaqti bilan soat 10:00 da ogohlantirish yuboriladi va keyin akkaunt o'chiriladi. Pulli obuna muddati tugagach 10 kundan so'ng 3 kunlik ogohlantirish boshlanadi; so'ng akkaunt va bot bazasidagi bog'liq ma'lumotlar o'chiriladi.
 - ✅ Sotuv notification'i har bir bog'langan guruhga alohida qayd qilinadi, qayta urinishda avval olgan guruhga takror yuborilmaydi.
 - ✅ Bot xabarlarida sayt yoki APK havolasi chiqarilmaydi. `WEBSITE_URL` faqat hisobot API manzilini aniqlash uchun ishlatiladi.
 - ⚠️ Karta cheklari admin tomonidan qo'lda ko'rib chiqiladi; Click/Payme webhook integratsiyasi alohida sozlanmagan.
